@@ -1,11 +1,1 @@
-# `vue`
-
-> TODO: description
-
-## Usage
-
-```
-const vue = require('vue');
-
-// TODO: DEMONSTRATE API
-```
+# 实现一个简易的 Vue 库
