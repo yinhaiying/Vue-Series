@@ -8,9 +8,16 @@
   <script src = "dist/umd/vue.js"></script>
 </head>
 <body>
-  hello,vue
+  <div id = "app"></div>
   <script>
-    console.log(Vue)
+     const vm = new Vue({
+       el:"#app",
+       data(){
+         return {
+           a:"1"
+         }
+       }
+     })
   </script>
 </body>
 </html>
