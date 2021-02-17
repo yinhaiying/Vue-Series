@@ -17,21 +17,17 @@ const startTagClose = /^\s*(\/?)>/; // 匹配标签结束的>  </div>  <input />
 const defaultTagRE = /\{\{((?:.\r?\n)+?)\}\}/g;   // {{}} 匹配双大括号中除换行以外的字符
 
 
-// <div id = "app">hello {{name}}<span>world</span></div>
-function start(tagName, attrs) {
-  console.log("处理开始标签：", tagName, attrs)
-}
-function end(tagName) {
-  console.log("处理结束标签:", tagName)
-}
 
-function chars(text) {
-  console.log("chars处理文本:", text)
-}
+
+
+
 
 
 
 function parseHTML(html) {
+  let root;
+  let currentPatent;
+  let stack = [];
   while (html) {
     let textEnd = html.indexOf("<");  // 是否以<开头
     if (textEnd === 0) {
@@ -42,14 +38,12 @@ function parseHTML(html) {
       }
       // 结束标签
       const endTagMatch = html.match(endTag);
-      console.log("endTagMatch")
       if (endTagMatch) {
         end(endTagMatch[1]);   // 将结束标签传入
         advance(endTagMatch[0].length);
         continue;
       }
     }
-    console.log("html:", html)
     // console.log("textEnd:", textEnd)
     // 是文本
     let text;
@@ -92,6 +86,50 @@ function parseHTML(html) {
       }
     }
   }
+
+
+  console.log("stack0000:", stack)
+  // <div id = "app">hello {{name}}<span>world</span></div>
+  function start(tagName, attrs) {
+    let element = createASTElement(tagName, attrs);
+    if (!root) {
+      root = element;
+    }
+    currentPatent = element;
+    stack.push(element);   // 将ast元素放入栈中
+  }
+  function end(tagName) {
+    let element = stack.pop();
+    currentPatent = stack[stack.length - 1]  // [div,p]
+    if (currentPatent) {
+      element.parent = currentPatent;
+      currentPatent.children.push(element);
+    }
+  }
+
+  function chars(text) {
+    text = text.replace(/\s/g, "");
+    if (text) {
+      currentPatent.children.push({
+        tag: "",
+        type: 3,
+        children: [],
+        text: text,
+      })
+    }
+  }
+
+  function createASTElement(tagName, attrs) {
+    return {
+      tag: tagName,
+      type: 1,   // 元素类型
+      children: [],
+      attrs: attrs,
+      parent: null
+    }
+  }
+  console.log("root:", root)
+  return root;
 }
 
 
