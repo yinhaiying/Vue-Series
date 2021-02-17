@@ -9,22 +9,15 @@
 </head>
 <body>
   <div id = "app">
-    {{arr}}
-    <ul>
-      <li>{{info.age}}</li>
-      <li>{{info.name}}</li>
-    </ul>
+    hello {{name}}
+    <span>world</span>
   </div>
   <script>
      const vm = new Vue({
        el:"#app",
        data(){
          return {
-           arr:[1,2,3],
-           info:{
-             age:27,
-             name:"Bob"
-           }
+           name:"测试"
          }
        },
       //  render(h){

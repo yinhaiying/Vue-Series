@@ -1,4 +1,6 @@
 import { initState } from "./state.js"
+import { compileToFunctions } from "./compiler/index"
+
 
 export const initMixin = function (Vue) {
   Vue.prototype._init = function (options) {
@@ -27,7 +29,6 @@ export const initMixin = function (Vue) {
         template = el.outerHTML;
         const render = compileToFunctions(template);
         options.render = render;
-        console.log("template:", template)
       }
       // 有template
     }
