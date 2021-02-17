@@ -1,5 +1,6 @@
 import { initState } from "./state.js"
 import { compileToFunctions } from "./compiler/index"
+import { mountComponent } from "./lifecycle.js";
 
 
 export const initMixin = function (Vue) {
@@ -32,7 +33,8 @@ export const initMixin = function (Vue) {
       }
       // 有template
     }
-    // 有render
-    // 最终渲染时，实际上用的都是render方法，要么是用户定义的，要么是我们转化的
+    // 有render方法之后，需要进行挂载
+    mountComponent(vm, el);
+
   }
 }
