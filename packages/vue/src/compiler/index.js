@@ -1,3 +1,4 @@
+import { text } from "express";
 
 
 
@@ -18,14 +19,14 @@ const defaultTagRE = /\{\{((?:.\r?\n)+?)\}\}/g;   // {{}} 匹配双大括号中�
 
 // <div id = "app">hello {{name}}<span>world</span></div>
 function start(tagName, attrs) {
-  console.log("开始标签处理：", tagName, attrs)
+  console.log("处理开始标签：", tagName, attrs)
 }
 function end(tagName) {
-
+  console.log("处理结束标签:", tagName)
 }
 
 function chars(text) {
-
+  console.log("chars处理文本:", text)
 }
 
 
@@ -36,10 +37,32 @@ function parseHTML(html) {
     if (textEnd === 0) {
       const startTagMatch = parseStartTag();   // 开始标签匹配的结果
       if (startTagMatch) {
-        start(startTagMatch.tagName, startTagMatch.attrs)
+        start(startTagMatch.tagName, startTagMatch.attrs);
+        continue;
       }
-      break;
+      // 结束标签
+      const endTagMatch = html.match(endTag);
+      console.log("endTagMatch")
+      if (endTagMatch) {
+        end(endTagMatch[1]);   // 将结束标签传入
+        advance(endTagMatch[0].length);
+        continue;
+      }
     }
+    console.log("html:", html)
+    // console.log("textEnd:", textEnd)
+    // 是文本
+    let text;
+    if (textEnd > 0) {
+      text = html.substring(0, textEnd);
+    }
+    if (text) {
+      chars(text);
+      advance(textEnd);
+      continue;
+    }
+
+    break;
   }
   function advance(n) {
     html = html.substring(n)
