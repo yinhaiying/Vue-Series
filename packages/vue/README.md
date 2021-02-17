@@ -108,3 +108,85 @@ export function observe(data) {
   return new Observer(data);
 }
 ```
+
+#### 对数组的拦截
+
+由于 Object.defineProperty 没办法实现对数组中新增元素的拦截。如下所示：
+
+```js
+const a = [1, 2, 3];
+// 假设这个a我们已经实现了拦截，接下来我们给a添加数据
+a.push(4);
+// 新增的数据 4 没办法监听到。因为Object.defineProperty要监听的数据是必须在一开始就设置好的。
+```
+
+因此，为了解决这个问题，我们需要重写数组的 push,pop,unshift,shift,splice 等这些方法，让它们在操作时也能够监听到变化。
+
+```js
+class Observer {
+  constructor(value) {
+    // 判断一个对象是否被检测过，给这个对象新增__ob__属性，但是需要设置它不可枚举
+    // 因为这个值是一个类的实例，实力身上有非常多的属性以及原型上的属性，不需要被拦截，
+    // 否则会一直枚举它的属性，陷入死循环
+    Object.defineProperty(value, "__ob__", {
+      enumerable: false, // 不能被枚举
+      configurable: false,
+      value: this, // 这个this就是observer的实例，用于获取它身上的方法
+    });
+
+    if (Array.isArray(value)) {
+      value.__proto__ = arrayMethods;
+      // 观测数组中的对象类型  arr = [{a:1}]
+      this.observeArray(value);
+    } else {
+      //使用Object.defineProperty重新定义属性
+      this.walk(value);
+    }
+  }
+  // 拦截对象
+  walk(data) {
+    let keys = Object.keys(data);
+    keys.forEach((key) => {
+      defineReactive(data, key, data[key]);
+    });
+  }
+  // 拦截数组中的对象
+  observeArray(value) {
+    value.forEach((item) => {
+      observe(item);
+    });
+  }
+}
+```
+
+重写 push,pop 等数组方法
+
+```js
+// 数组原型上的方法
+let oldArrayProtoMethods = Array.prototype;
+
+// 继承这些方法
+
+export let arrayMethods = Object.create(oldArrayProtoMethods);
+let methods = ["push", "pop", "unshift", "shift", "reverse", "sort", "splice"];
+methods.forEach((method) => {
+  arrayMethods[method] = function(...args) {
+    // 首先实现原来的方法的功能，也就是调用原来的方法
+    const result = oldArrayProtoMethods[method].apply(this, args);
+    let inserted;
+    switch (method) {
+      // 数组的新增方法，可能新增对象类型，这个对象类型必须被拦截
+      case "push":
+      case "shift":
+        inserted = args;
+        break;
+      case "splice":
+        inserted = args.slice(2);
+    }
+    if (inserted) {
+      this.__ob__.observeArray(inserted);
+    }
+    return result;
+  };
+});
+```
