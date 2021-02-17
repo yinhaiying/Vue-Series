@@ -1,3 +1,5 @@
+import e from "express";
+
 export function patch(oldVnode, vnode) {
   // console.log("oldVnode:", oldVnode)
   let el = createElm(vnode);
@@ -8,7 +10,6 @@ export function patch(oldVnode, vnode) {
 
 
 function createElm(vnode) {
-  console.log("vnode......", vnode)
   let {
     tag,
     data,
@@ -19,6 +20,8 @@ function createElm(vnode) {
   if (typeof tag === "string") {
     // 创建元素，放到vnode.el上作为父元素记录下来
     vnode.el = document.createElement(vnode.tag);
+    // 更新属性
+    updateProperties(vnode);
     children.forEach((child) => {
       vnode.el.appendChild(createElm(child))
     });
@@ -26,4 +29,22 @@ function createElm(vnode) {
     vnode.el = document.createTextNode(text);
   }
   return vnode.el;
+}
+
+
+function updateProperties(vnode) {
+  let el = vnode.el;
+  let newProps = vnode.data || {};
+  for (let key in newProps) {
+    if (key === "style") {
+      for (let styleName in newProps[key]) {
+        el.style[styleName] = newProps.style[styleName];
+      }
+    } else if (key === "class") {
+      el.className = newProps["class"]
+    } else {
+      el.setAttribute(key, newProps[key])
+    }
+
+  }
 }
