@@ -111,6 +111,9 @@ export function observe(data) {
 
 #### 对数组的拦截
 
+1. 对数组的每个对象进行劫持
+2. 重写数组的 push,pop 等方法
+
 由于 Object.defineProperty 没办法实现对数组中新增元素的拦截。如下所示：
 
 ```js
