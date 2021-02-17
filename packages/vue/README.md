@@ -193,3 +193,65 @@ methods.forEach((method) => {
   };
 });
 ```
+
+### 渲染数据
+
+Vue 渲染的操作：
+
+1. 默认会查找 render 方法，
+2. 如果 render 方法如果不存在，查找 template 属性
+3. 如果 render 和 template 都不存在，找当前挂载的 el 的元素内容进行渲染
+   **render**
+
+```js
+const vm = new Vue({
+  el: "#app",
+  data() {
+    return {
+      a: 1,
+    };
+  },
+  render(h) {
+    return h("div", { id: "oDiv" }, "hello");
+  },
+});
+```
+
+**template**
+
+```js
+const vm = new Vue({
+  el: "#app",
+  data() {
+    return {
+      a: 1,
+    };
+  },
+  template: "<div id = 'div'>hello</div>",
+});
+```
+
+事实上，无论用户用的是 template 还是默认的内容，最终都会转化成一个 render 方法，挂载到 vm.options 身上，统一处理这个 render 方法。
+
+```js
+  // 实现挂载操作
+  Vue.prototype.$mount = function (el) {
+    const vm = this;
+    const options = vm.$options;
+    el = document.querySelector(el);
+    if (!options.render) {
+      //没有render,将template转化成render
+      let template = options.template;
+      if (!template && el) {
+        template = el.outerHTML;
+        const render = compileToFunctions(template);
+        options.render = render;
+        console.log("template:", template)
+      }
+      // 有template
+    }
+    // 有render
+    // 最终渲染时，实际上用的都是render方法，要么是用户定义的，要么是我们转化的
+  }
+}
+```

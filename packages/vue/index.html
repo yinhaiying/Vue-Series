@@ -8,21 +8,35 @@
   <script src = "dist/umd/vue.js"></script>
 </head>
 <body>
-  <div id = "app"></div>
+  <div id = "app">
+    {{arr}}
+    <ul>
+      <li>{{info.age}}</li>
+      <li>{{info.name}}</li>
+    </ul>
+  </div>
   <script>
      const vm = new Vue({
        el:"#app",
        data(){
          return {
-           arr:[{a:1}]
+           arr:[1,2,3],
+           info:{
+             age:27,
+             name:"Bob"
+           }
          }
-       }
+       },
+      //  render(h){
+      //    return h("div",{id:"oDiv"},"hello")
+      //  },
+      //  template:"<div id = 'div'>hello</div>"
      });
      // 递归地去拦截数据,拦截a,拦截b，拦截c
      // 层级越深，性能越差
-     console.log("vm:",vm._data.arr);
-     console.log("vm:",vm.arr);
-     vm.arr.push({b:1})
+    //  console.log("vm:",vm._data.arr);
+    //  console.log("vm:",vm.arr);
+    //  vm.arr.push({b:1})
 
     //  vm._data.a = {b:"hello"};   // a将整个对象替换了，因此a身上的元素都不再被拦截了
     //  // 但是实际上还是需要拦截的。
