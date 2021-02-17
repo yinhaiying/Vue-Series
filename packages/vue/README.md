@@ -1,5 +1,13 @@
 # 实现一个简易的 Vue 库
 
+## 总结：
+
+Vue 的渲染流程：
+
+1. 先初始化数据 initState，包括 initProps,initMethod,initData,initComputed,initWatch 等。
+2. 将模板进行编译 无论是通过 render 函数，还是通过 template 还是默认的，都需要编译成一个 render 函数。
+3. 调用 render 函数生成虚拟 DOM，然后再渲染成真实的 DOM.展示到页面。
+
 ## 初始化 init
 
 初始化需要做两件事：

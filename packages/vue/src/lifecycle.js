@@ -1,7 +1,10 @@
+import { patch } from "./vdom/patch"
 
 export function lifecycleMixin(Vue) {
   Vue.prototype._update = function (vnode) {
-
+    const vm = this;
+    console.log("update:", vnode)
+    patch(vm.$el, vnode)
   }
 }
 
