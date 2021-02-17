@@ -21,8 +21,8 @@
      // 递归地去拦截数据,拦截a,拦截b，拦截c
      // 层级越深，性能越差
      console.log("vm:",vm._data.arr);
-     vm._data.arr.push({b:1});
-     vm._data.arr[1].b = 100;
+     console.log("vm:",vm.arr);
+     vm.arr.push({b:1})
 
     //  vm._data.a = {b:"hello"};   // a将整个对象替换了，因此a身上的元素都不再被拦截了
     //  // 但是实际上还是需要拦截的。
