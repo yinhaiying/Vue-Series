@@ -51,3 +51,60 @@ export function initState(vm) {
   }
 }
 ```
+
+### initData
+
+初始化 data 部分，主要是实现对 data 的拦截。
+
+```js
+function initData(vm) {
+  let data = vm.$options.data;
+  vm._data = data = typeof data === "function" ? data.call(vm) : data;
+  // 数据的劫持
+  // 对象 Object.defineProperty
+  // 数组 对象里面嵌套数组
+  observe(data);
+}
+```
+
+所有的拦截都通过一个 Observer 类来处理
+
+```js
+class Observer {
+  constructor(value) {
+    //使用Object.defineProperty重新定义属性
+    this.walk(value);
+  }
+  walk(data) {
+    let keys = Object.keys(data);
+    keys.forEach((key) => {
+      defineReactive(data, key, data[key]);
+    });
+  }
+}
+
+function defineReactive(data, key, value) {
+  // 如果value还是对象，那么继续observe
+  observe(value);
+  Object.defineProperty(data, key, {
+    get() {
+      console.log(`用户获取值${key}`);
+      return value;
+    },
+    set(newValue) {
+      console.log(`用户设置值${key}`);
+      // 如果用户将值改为对象，继续监控。
+      observe(newValue);
+      if (newValue === value) return;
+      value = newValue;
+    },
+  });
+}
+
+export function observe(data) {
+  if (typeof data !== "object" || data === null) {
+    return;
+  }
+  return new Observer(data);
+}
+```

@@ -14,10 +14,20 @@
        el:"#app",
        data(){
          return {
-           a:"1"
+           a:{
+             b:1
+           }
          }
        }
-     })
+     });
+     // 递归地去拦截数据,拦截a,拦截b，拦截c
+     // 层级越深，性能越差
+    //  console.log("vm:",vm._data.a.b.c);
+
+     vm._data.a = {b:"hello"};   // a将整个对象替换了，因此a身上的元素都不再被拦截了
+     // 但是实际上还是需要拦截的。
+     vm._data.a.b = 3;  // 设置b没有触发set方法，因此新增的数据页
+
   </script>
 </body>
 </html>
