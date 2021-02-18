@@ -25,14 +25,14 @@ class Watcher {
     this.depsId = new Set();   // set用来存放id确保唯一性
     if (typeof exprOrFn === "function") {
       this.getter = exprOrFn;
-    }else{
+    } else {
       // 这里的exprOrFn是字符串表达式 "info.name"。我们需要取到它对应的值
       // vm.info.name
-      this.getter = function(){
-        
+      this.getter = function () {
+
         let path = exprOrFn.split(".");
         let obj = vm;
-        for(let i = 0;i < path.length;i++){
+        for (let i = 0; i < path.length; i++) {
           obj = obj[path[i]]
         }
         return obj;
@@ -40,18 +40,17 @@ class Watcher {
     }
     // 创建watcher实例时，默认会执行
     // 调用get方法就是进行一次取值操作
-    this.value = this.get();  
+    this.value = this.get();
   }
   get() {
     pushTarget(this);
     let result = this.getter();
-    console.log("result:",result)
     popTarget();
     return result;
   }
   update() {
     // 这里每次调用，都会触发get方法，实现一次更新，我们不希望如此频繁的更新。
-    // 
+    //
     queueWatcher(this);  // 暂存
     // this.get();
   }
@@ -64,41 +63,40 @@ class Watcher {
       dep.addSub(this);
     }
   }
-  run(){
+  run() {
     let newValue = this.get();
     let oldValue = this.value;
     this.value = newValue;
-    console.log("run:",newValue,oldValue)
-    if(this.user){
-      this.cb.call(this.vm,newValue,oldValue);
+    if (this.user) {
+      this.cb.call(this.vm, newValue, oldValue);
     }
   }
 }
 let queue = [];
 let has = {};
 let pending = false;
-function queueWatcher(watcher){
+function queueWatcher(watcher) {
   // 如果是相同的watcher，那么只需要触发一次即可。
   const id = watcher.id;
-  if(!has[id]){
+  if (!has[id]) {
     queue.push(watcher);
     has[id] = true;
 
     // 异步更新,等待所有同步代码执行完毕之后再次执行
-    if(!pending){  // 如果还没有清空队列就不要再开定时器了
+    if (!pending) {  // 如果还没有清空队列就不要再开定时器了
       nextTick(flushSchedulerQueue)
     }
   }
 }
 
-function flushSchedulerQueue(){
+function flushSchedulerQueue() {
   queue.forEach((watcher) => {
     // 只有是渲染watcher的时候，才调用。
     // 用户定义的watcher，是值修改时才调用。
-     watcher.run();
-     if(!watcher.user){
-       watcher.cb();
-     }
+    watcher.run();
+    if (!watcher.user) {
+      watcher.cb();
+    }
   });
   queue = [];
   has = {};

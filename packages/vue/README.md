@@ -623,7 +623,52 @@ DOM DIFF 的规则
 3. 如果标签相同，且不是文本结点，那么需要比较标签的属性和 children 了。
 
 - 标签相同，复用标签，将两者的差异更新到原来的标签上即可。
+
+### 属性比较
+
 - 属性比对：
   - 老的有，新的没有，删除老的
   - 新的有，直接用新的
   - 特殊处理下 style,class 等
+
+```js
+function updateProperties(vnode, oldProps = {}) {
+  console.log("update:", vnode);
+  let newProps = vnode.data || {};
+  let el = vnode.el;
+  // 老的有，新的没有。 删除属性
+  for (let key in oldProps) {
+    if (!newProps[key]) {
+      el.removeAttribute(key);
+    }
+  }
+
+  let newStyle = newProps.style || {};
+  let oldStyle = oldProps.style || {};
+  // 老的样式中有，新的没有，删除老的样式
+  for (let key in oldStyle) {
+    if (!newStyle[key]) {
+      el.style[key] = "";
+    }
+  }
+  // 新的有，直接用新的
+  for (let key in newProps) {
+    if (key === "style") {
+      for (let styleName in newProps[key]) {
+        el.style[styleName] = newProps.style[styleName];
+      }
+    } else if (key === "class") {
+      el.className = newProps["class"];
+    } else {
+      // console.log("el:", el)
+      el.setAttribute(key, newProps[key]);
+    }
+  }
+}
+```
+
+### 子元素比较
+
+1. 老的有 children，新的没有 children。删除原来的 children 即可
+2. 老的没有 children,新的有 children，保留新的 children 即可
+3. 老的和旧的都有 children diff 算法
