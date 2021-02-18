@@ -45,11 +45,9 @@ function defineReactive(data, key, value) {
 
   // 如果value还是对象，那么继续observe
   let childDep = observe(value);
-  console.log("childDep:",childDep)
   Object.defineProperty(data, key, {
     get() {
       // 依赖收集
-      console.log(`用户获取值${key}`);
       if (Dep.target) {
         // 每次把这个watcher
         dep.depend();
@@ -61,7 +59,6 @@ function defineReactive(data, key, value) {
       return value;
     },
     set(newValue) {
-      console.log(`用户设置值${key}`)
       // 如果用户将值改为对象，继续监控。
       observe(newValue);
       if (newValue === value) return;

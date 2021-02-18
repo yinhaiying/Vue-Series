@@ -42,8 +42,12 @@
       // vm.arr[0] = 100;  通过索引更新数组是不生效的。
       // vm.arr.length = 100; 更改数组长度也是无效的。
       // vm.arr[0].a = 100;   如果数组的元素是对象，那么是可以被监测到的
-      console.log("vm.arr:",vm.arr.push("4"))
-      console.log("vm.name:",vm.name)
+      console.log("vm.arr:",vm.arr.push("4"));
+      console.log("vm.arr:",vm.arr.push("5"));
+      console.log("vm.arr:",vm.arr.push("6"));
+      console.log("vm.arr:",vm.arr.push("7"));
+      vm.name = 300
+//
     },2000)
   </script>
 </body>

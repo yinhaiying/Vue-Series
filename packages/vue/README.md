@@ -434,3 +434,40 @@ methods.forEach(method => {
 })
 
 ```
+
+### 异步更新
+我们到目前为止，实现了对象和数组的更新。但是，每次修改数据都会触发一下更新。如下所示：
+```js
+    console.log("vm.arr:",vm.arr.push("4"));
+    console.log("vm.arr:",vm.arr.push("5"));
+    console.log("vm.arr:",vm.arr.push("6"));
+    console.log("vm.arr:",vm.arr.push("7"));
+    vm.name = 300
+```
+我们修改了5次数据，触发了五次更新。这么频繁地更新，如果页面数据多，那么肯定会带来性能的问题。因此，
+最好的解决办法是，将这些更新，放到一起作为一次更新，批处理。这就是Vue的非常重要的nextTick。
+批处理操作的实现：
+如果watcher的id相同，表示操作的是同一个组件，这时候可以只渲染一次。将所有的不同的id的watcher放入队列中。等待这一次所有的watcher都进入队列之后,这是一个同步操作，再在异步操作中批处理这些watcher。也就是调用他们的get方法进行更新。
+```js
+let queue = [];
+let has = {};
+let pending = false;
+function queueWatcher(watcher){
+  // 如果是相同的watcher，那么只需要触发一次即可。
+  const id = watcher.id;
+  if(!has[id]){
+    queue.push(watcher);
+    has[id] = true;
+
+    // 异步更新,等待所有同步代码执行完毕之后再次执行
+    if(!pending){  // 如果还没有清空队列就不要再开定时器了——防抖
+      setTimeout(() => {
+        queue.forEach((watcher) => watcher.run());
+        queue = [];
+        has = {};
+      }, 0);
+      pending = true;
+    }
+  }
+}
+```

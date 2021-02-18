@@ -13,7 +13,6 @@ methods.forEach(method => {
   arrayMethods[method] = function (...args) {
     // 首先实现原来的方法的功能，也就是调用原来的方法
     const result = oldArrayProtoMethods[method].apply(this, args);
-    console.log("数组方法被调用了")
     let inserted;
     switch (method) {
       // 数组的新增方法，可能新增对象类型，这个对象类型必须被拦截

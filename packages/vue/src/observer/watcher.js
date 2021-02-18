@@ -32,7 +32,10 @@ class Watcher {
     popTarget()
   }
   update() {
-    this.get();
+    // 这里每次调用，都会触发get方法，实现一次更新，我们不希望如此频繁的更新。
+    // 
+    queueWatcher(this);  // 暂存
+    // this.get();
   }
   addDep(dep) {
     let id = dep.id;
@@ -43,7 +46,30 @@ class Watcher {
       dep.addSub(this);
     }
   }
+  run(){
+    this.get();
+  }
 }
+let queue = [];
+let has = {};
+let pending = false;
+function queueWatcher(watcher){
+  // 如果是相同的watcher，那么只需要触发一次即可。
+  console.log("watcher:",watcher.id)
+  const id = watcher.id;
+  if(!has[id]){
+    queue.push(watcher);
+    has[id] = true;
 
-
+    // 异步更新,等待所有同步代码执行完毕之后再次执行
+    if(!pending){  // 如果还没有清空队列就不要再开定时器了
+      setTimeout(() => {
+        queue.forEach((watcher) => watcher.run());
+        queue = [];
+        has = {};
+      }, 0);
+      pending = true;
+    }
+  }
+}
 export default Watcher;
