@@ -19,6 +19,8 @@ class Watcher {
     this.cb = cb;
     this.options = options;
     this.id = id++;  // watcher唯一标识
+    this.deps = [];  // watcher记录有多少个依赖项，比如name,age
+    this.depsId = new Set();   // set用来存放id确保唯一性
     if (typeof exprOrFn === "function") {
       this.getter = exprOrFn;
     }
@@ -31,6 +33,15 @@ class Watcher {
   }
   update() {
     this.get();
+  }
+  addDep(dep) {
+    let id = dep.id;
+    if (!this.depsId.has(id)) {
+      this.deps.push(id);
+      this.depsId.add(id);
+      // dep在把对应的watcher拿到，然后存进去
+      dep.addSub(this);
+    }
   }
 }
 
