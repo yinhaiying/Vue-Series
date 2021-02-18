@@ -27,6 +27,7 @@ methods.forEach(method => {
     if (inserted) {
       this.__ob__.observeArray(inserted);
     }
+    this.__ob__.dep.notify();   // 通知数组更新
     return result;
   }
 })

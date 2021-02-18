@@ -5,6 +5,8 @@ import Dep from "./dep.js";
 class Observer {
   constructor(value) {
 
+    this.dep = new Dep();  // 给{}或者[]添加dep
+
     // 判断一个对象是否被检测过，给这个对象新增__ob__属性，但是需要设置它不可枚举
     // 因为这个值是一个类的实例，实力身上有非常多的属性以及原型上的属性，不需要被拦截，
     // 否则会一直枚举它的属性，陷入死循环
@@ -42,7 +44,8 @@ function defineReactive(data, key, value) {
 
 
   // 如果value还是对象，那么继续observe
-  observe(value);
+  let childDep = observe(value);
+  console.log("childDep:",childDep)
   Object.defineProperty(data, key, {
     get() {
       // 依赖收集
@@ -50,6 +53,9 @@ function defineReactive(data, key, value) {
       if (Dep.target) {
         // 每次把这个watcher
         dep.depend();
+        if(childDep.dep){
+          childDep.dep.depend();  // 数组存储了渲染watcher。
+        }
       }
 
       return value;

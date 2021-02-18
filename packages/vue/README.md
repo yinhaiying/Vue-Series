@@ -266,6 +266,7 @@ const vm = new Vue({
 
 ## 数据更新
 
+### 正常数据更新
 到上面为止，我们只是实现了页面从初始化到渲染完成整个流程。但是如果数据发生变化，虽然数据被劫持了，实际上已经发生了变化，但是它不会被更新到页面中。
 
 ```js
@@ -354,4 +355,82 @@ function defineReactive(data, key, value) {
     },
   });
 }
+```
+### 如果是数组更新
+我们都知道，直接操作数组的索引和长度都不会导致数组更新。只有push,pop,unshift,shift等操作才会导致数组更新。因此，我们需要在进行push,pop,unshift等操作时进行更新。而更新都是调用watcher实现的。之前是每个属性通过一个dep记录watcher，但是现在数组的元素没有被拦截，无法用来记录watcher，因此只能用给整个数组定义一个dep来记录watcher。
+```js
+class Observer {
+  constructor(value) {
+    // 这里定义一个dep用来记录watcher，它可能不仅仅是数组，还可能是对象。
+    
+    this.dep = new Dep();  // 给{}或者[]添加dep
+
+
+    defineProperty(value, "__ob__", this)
+    if (Array.isArray(value)) {
+      value.__proto__ = arrayMethods;
+      this.observeArray(value);
+    } else {
+      this.walk(value);
+    }
+  }
+
+}
+```
+然后在使用数组时，也就是触发get的时候，将watcher保存到dep中。
+```js
+function defineReactive(data, key, value) {
+  // 在拦截属性的时候，给每个属性都加一个dep
+  // 当页面取值时，说明这个值用来渲染了。将这个watcher和这个属性对应起来
+  let dep = new Dep();
+
+
+
+  // childDep是元素的返回值，如果value还是对象，那么继续observe
+  let childDep = observe(value);
+  Object.defineProperty(data, key, {
+    get() {
+      if (Dep.target) {
+        dep.depend();
+        // 如果有dep，那就将dep
+        if(childDep.dep){
+          // 看这里
+          childDep.dep.depend();  // 数组存储了渲染watcher。
+        }
+      }
+      return value;
+    },
+    set(newValue) {
+      console.log(`用户设置值${key}`)
+      observe(newValue);
+      if (newValue === value) return;
+      value = newValue;
+      dep.notify();
+    }
+  })
+}
+```
+然后在调用push,pop等方法时，Notify即可。
+```js
+methods.forEach(method => {
+  arrayMethods[method] = function (...args) {
+    const result = oldArrayProtoMethods[method].apply(this, args);
+    console.log("数组方法被调用了")
+    let inserted;
+    switch (method) {
+      case "push":
+      case "shift":
+        inserted = args;
+        break;
+      case "splice":
+        inserted = args.slice(2)
+    }
+    if (inserted) {
+      this.__ob__.observeArray(inserted);
+    }
+    this.__ob__.dep.notify();   // 通知数组更新
+    return result;
+  }
+})
+
 ```
