@@ -5,6 +5,7 @@ vue 的更新策列是以组件为单位的，给每个组件都增加了一个 
 
 */
 
+import { nextTick } from "../utils";
 import { popTarget, pushTarget } from "./dep";
 
 
@@ -55,7 +56,6 @@ let has = {};
 let pending = false;
 function queueWatcher(watcher){
   // 如果是相同的watcher，那么只需要触发一次即可。
-  console.log("watcher:",watcher.id)
   const id = watcher.id;
   if(!has[id]){
     queue.push(watcher);
@@ -63,13 +63,18 @@ function queueWatcher(watcher){
 
     // 异步更新,等待所有同步代码执行完毕之后再次执行
     if(!pending){  // 如果还没有清空队列就不要再开定时器了
-      setTimeout(() => {
-        queue.forEach((watcher) => watcher.run());
-        queue = [];
-        has = {};
-      }, 0);
-      pending = true;
+      nextTick(flushSchedulerQueue)
     }
   }
 }
+
+function flushSchedulerQueue(){
+  console.log("flushSchedule")
+  queue.forEach((watcher) => watcher.run());
+  queue = [];
+  has = {};
+  pending = true;
+}
+
+
 export default Watcher;
