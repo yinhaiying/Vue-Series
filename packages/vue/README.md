@@ -263,3 +263,95 @@ const vm = new Vue({
   }
 }
 ```
+
+## 数据更新
+
+到上面为止，我们只是实现了页面从初始化到渲染完成整个流程。但是如果数据发生变化，虽然数据被劫持了，实际上已经发生了变化，但是它不会被更新到页面中。
+
+```js
+setTimeout(() => {
+  vm.name = ",world";
+}, 2000);
+```
+
+如上所示，我们通过 vm.name 修改 data 中的属性 name，由于 data 对象被劫持了，因此 name 已修改，它就被修改了，但是我们的页面的渲染需要重新渲染，也就是我们还是需要走 render，update 这个流程。
+
+```js
+setTimeout(() => {
+  vm.name = ",world";
+  vm._update(vm.render());
+}, 2000);
+```
+
+通过调用 vm.\_update 和 vm.\_render 方法我们就能够实现数据的更新。但是我们不可能让用户每次修改完数据之后，再手动去调用 update 和 render 方法，因此，我们需要设置当数据变化时，能够自动 render 和 update。
+vue 的更新策列是以组件为单位的，给每个组件都增加了一个 watcher,属性变化后会重新调用这个 watcher(渲染 watcher)。
+挂载的时候，以前是直接通过 vm.\_update(vm.\_render())直接渲染，现在改成在 watcher 中实现。
+挂载时，定义的是一个全局的 watcher。这个 watcher 会在当前组件的所有属性中使用。
+
+```js
+export function mountComponent(vm, el) {
+  let updateComponent = () => {
+    vm._update(vm._render());
+  };
+  // 将原来的更新放到updateComponent中，传给watcher
+  let watcher = new Watcher(vm, updateComponent, () => {}, true);
+}
+```
+
+watcher 类：
+
+```js
+let id = 0;
+class Watcher {
+  // vm实例
+  // expoOrFn  vm._update(vm._render()) 渲染更新的执行函数
+  // cb更新后的回调
+  constructor(vm, exprOrFn, cb, options) {
+    this.vm = vm;
+    this.exprOrFn = exprOrFn;
+    this.cb = cb;
+    this.options = options;
+    this.id = id++; // watcher唯一标识
+    if (typeof exprOrFn === "function") {
+      this.getter = exprOrFn;
+    }
+    this.get(); // 创建watcher实例时，默认会执行
+  }
+  get() {
+    this.getter();
+  }
+}
+```
+
+如上所示，是 watcher 类中接收 updateComponent，然后渲染。接下来我们需要做的是依赖收集。
+
+1. 在通过 defineProperty 的时候，给每个属性增加一个 dep
+2. 把这个渲染 watcher 放到 Dep.target 身上。
+3. 开始渲染，页面取值会调用到 get 方法，需要让这个属性的 dep 存储当前的 watcher
+4. 页面中所需要的属性都会将这个 watcher 存到自己的 dep 中
+5. 等属性更新了，就会重新调用渲染逻辑，通知自己存储的 watcher 来更新。
+
+```js
+function defineReactive(data, key, value) {
+  // 在拦截属性的时候，给每个属性都加一个dep
+  // 当页面取值时，说明这个值用来渲染了。将这个watcher和这个属性对应起来
+  let dep = new Dep();
+  observe(value);
+  Object.defineProperty(data, key, {
+    get() {
+      // 依赖收集,每次把这个watcher存储起来
+      if (Dep.target) {
+        dep.depend();
+      }
+      return value;
+    },
+    set(newValue) {
+      observe(newValue);
+      if (newValue === value) return;
+      value = newValue;
+      // 依赖更新
+      dep.notify();
+    },
+  });
+}
+```

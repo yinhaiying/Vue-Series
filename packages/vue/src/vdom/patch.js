@@ -6,6 +6,7 @@ export function patch(oldVnode, vnode) {
   let parentElm = oldVnode.parentNode;   // 生成真实的DOM
   parentElm.insertBefore(el, oldVnode.nextSibling)   // 将真实DOM插入到老的DOM后面
   parentElm.removeChild(oldVnode);   // 删除老的DOM结点
+  return el;
 }
 
 

@@ -34,6 +34,11 @@
     //  vm._data.a = {b:"hello"};   // a将整个对象替换了，因此a身上的元素都不再被拦截了
     //  // 但是实际上还是需要拦截的。
     //  vm._data.a.b = 3;  // 设置b没有触发set方法，因此新增的数据页
+
+    setTimeout(() => {
+      vm.name = ",world";
+      console.log("vm.name",vm.name);
+    },2000)
   </script>
 </body>
 </html>

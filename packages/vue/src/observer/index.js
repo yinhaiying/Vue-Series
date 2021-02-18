@@ -1,6 +1,7 @@
 
 import { arrayMethods } from "./array.js"
 import { defineProperty } from "../utils.js"
+import Dep from "./dep.js";
 class Observer {
   constructor(value) {
 
@@ -34,11 +35,23 @@ class Observer {
 }
 
 function defineReactive(data, key, value) {
+  // 在拦截属性的时候，给每个属性都加一个dep
+  // 当页面取值时，说明这个值用来渲染了。将这个watcher和这个属性对应起来
+  let dep = new Dep();
+
+
+
   // 如果value还是对象，那么继续observe
   observe(value);
   Object.defineProperty(data, key, {
     get() {
-      console.log(`用户获取值${key}`)
+      // 依赖收集
+      console.log(`用户获取值${key}`);
+      if (Dep.target) {
+        // 每次把这个watcher
+        dep.depend();
+      }
+
       return value;
     },
     set(newValue) {
@@ -46,7 +59,9 @@ function defineReactive(data, key, value) {
       // 如果用户将值改为对象，继续监控。
       observe(newValue);
       if (newValue === value) return;
-      value = newValue
+      value = newValue;
+      // 依赖更新
+      dep.notify();
     }
   })
 }
