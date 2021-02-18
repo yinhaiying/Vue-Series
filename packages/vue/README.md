@@ -267,6 +267,7 @@ const vm = new Vue({
 ## 数据更新
 
 ### 正常数据更新
+
 到上面为止，我们只是实现了页面从初始化到渲染完成整个流程。但是如果数据发生变化，虽然数据被劫持了，实际上已经发生了变化，但是它不会被更新到页面中。
 
 ```js
@@ -356,17 +357,19 @@ function defineReactive(data, key, value) {
   });
 }
 ```
+
 ### 如果是数组更新
-我们都知道，直接操作数组的索引和长度都不会导致数组更新。只有push,pop,unshift,shift等操作才会导致数组更新。因此，我们需要在进行push,pop,unshift等操作时进行更新。而更新都是调用watcher实现的。之前是每个属性通过一个dep记录watcher，但是现在数组的元素没有被拦截，无法用来记录watcher，因此只能用给整个数组定义一个dep来记录watcher。
+
+我们都知道，直接操作数组的索引和长度都不会导致数组更新。只有 push,pop,unshift,shift 等操作才会导致数组更新。因此，我们需要在进行 push,pop,unshift 等操作时进行更新。而更新都是调用 watcher 实现的。之前是每个属性通过一个 dep 记录 watcher，但是现在数组的元素没有被拦截，无法用来记录 watcher，因此只能用给整个数组定义一个 dep 来记录 watcher。
+
 ```js
 class Observer {
   constructor(value) {
     // 这里定义一个dep用来记录watcher，它可能不仅仅是数组，还可能是对象。
-    
-    this.dep = new Dep();  // 给{}或者[]添加dep
 
+    this.dep = new Dep(); // 给{}或者[]添加dep
 
-    defineProperty(value, "__ob__", this)
+    defineProperty(value, "__ob__", this);
     if (Array.isArray(value)) {
       value.__proto__ = arrayMethods;
       this.observeArray(value);
@@ -374,17 +377,16 @@ class Observer {
       this.walk(value);
     }
   }
-
 }
 ```
-然后在使用数组时，也就是触发get的时候，将watcher保存到dep中。
+
+然后在使用数组时，也就是触发 get 的时候，将 watcher 保存到 dep 中。
+
 ```js
 function defineReactive(data, key, value) {
   // 在拦截属性的时候，给每个属性都加一个dep
   // 当页面取值时，说明这个值用来渲染了。将这个watcher和这个属性对应起来
   let dep = new Dep();
-
-
 
   // childDep是元素的返回值，如果value还是对象，那么继续observe
   let childDep = observe(value);
@@ -393,29 +395,31 @@ function defineReactive(data, key, value) {
       if (Dep.target) {
         dep.depend();
         // 如果有dep，那就将dep
-        if(childDep.dep){
+        if (childDep.dep) {
           // 看这里
-          childDep.dep.depend();  // 数组存储了渲染watcher。
+          childDep.dep.depend(); // 数组存储了渲染watcher。
         }
       }
       return value;
     },
     set(newValue) {
-      console.log(`用户设置值${key}`)
+      console.log(`用户设置值${key}`);
       observe(newValue);
       if (newValue === value) return;
       value = newValue;
       dep.notify();
-    }
-  })
+    },
+  });
 }
 ```
-然后在调用push,pop等方法时，Notify即可。
+
+然后在调用 push,pop 等方法时，Notify 即可。
+
 ```js
-methods.forEach(method => {
-  arrayMethods[method] = function (...args) {
+methods.forEach((method) => {
+  arrayMethods[method] = function(...args) {
     const result = oldArrayProtoMethods[method].apply(this, args);
-    console.log("数组方法被调用了")
+    console.log("数组方法被调用了");
     let inserted;
     switch (method) {
       case "push":
@@ -423,44 +427,48 @@ methods.forEach(method => {
         inserted = args;
         break;
       case "splice":
-        inserted = args.slice(2)
+        inserted = args.slice(2);
     }
     if (inserted) {
       this.__ob__.observeArray(inserted);
     }
-    this.__ob__.dep.notify();   // 通知数组更新
+    this.__ob__.dep.notify(); // 通知数组更新
     return result;
-  }
-})
-
+  };
+});
 ```
 
 ### 异步更新
+
 我们到目前为止，实现了对象和数组的更新。但是，每次修改数据都会触发一下更新。如下所示：
+
 ```js
-    console.log("vm.arr:",vm.arr.push("4"));
-    console.log("vm.arr:",vm.arr.push("5"));
-    console.log("vm.arr:",vm.arr.push("6"));
-    console.log("vm.arr:",vm.arr.push("7"));
-    vm.name = 300
+console.log("vm.arr:", vm.arr.push("4"));
+console.log("vm.arr:", vm.arr.push("5"));
+console.log("vm.arr:", vm.arr.push("6"));
+console.log("vm.arr:", vm.arr.push("7"));
+vm.name = 300;
 ```
-我们修改了5次数据，触发了五次更新。这么频繁地更新，如果页面数据多，那么肯定会带来性能的问题。因此，
-最好的解决办法是，将这些更新，放到一起作为一次更新，批处理。这就是Vue的非常重要的nextTick。
+
+我们修改了 5 次数据，触发了五次更新。这么频繁地更新，如果页面数据多，那么肯定会带来性能的问题。因此，
+最好的解决办法是，将这些更新，放到一起作为一次更新，批处理。这就是 Vue 的非常重要的 nextTick。
 批处理操作的实现：
-如果watcher的id相同，表示操作的是同一个组件，这时候可以只更新一次,由于数据时被劫持的，因此只要修改就实际上已经改变了，也就是已经得到最新的值了，只是我们不希望每次改变都重新渲染。将所有的不同的id的watcher放入队列中。等待这一次所有的watcher都进入队列之后,这是一个同步操作，再在异步操作中批处理这些watcher。也就是调用他们的get方法进行更新。
+如果 watcher 的 id 相同，表示操作的是同一个组件，这时候可以只更新一次,由于数据时被劫持的，因此只要修改就实际上已经改变了，也就是已经得到最新的值了，只是我们不希望每次改变都重新渲染。将所有的不同的 id 的 watcher 放入队列中。等待这一次所有的 watcher 都进入队列之后,这是一个同步操作，再在异步操作中批处理这些 watcher。也就是调用他们的 get 方法进行更新。
+
 ```js
 let queue = [];
 let has = {};
 let pending = false;
-function queueWatcher(watcher){
+function queueWatcher(watcher) {
   // 如果是相同的watcher，那么只需要触发一次即可。
   const id = watcher.id;
-  if(!has[id]){
+  if (!has[id]) {
     queue.push(watcher);
     has[id] = true;
 
     // 异步更新,等待所有同步代码执行完毕之后再次执行
-    if(!pending){  // 如果还没有清空队列就不要再开定时器了——防抖
+    if (!pending) {
+      // 如果还没有清空队列就不要再开定时器了——防抖
       setTimeout(() => {
         queue.forEach((watcher) => watcher.run());
         queue = [];
@@ -471,55 +479,57 @@ function queueWatcher(watcher){
   }
 }
 ```
-但是，直接使用setTimeout开定时器实现异步，存在一些问题，如果用户也使用其他定时器，异步操作，那么可能无法明确地区分异步的执行先后顺序，这会带来问题。这时候我们需要处理下异步的执行。将异步操作放入一个队列中，按照先后顺序执行(下一个异步操作需要拿到前一个的值)，而且我们需要使用其他的更好的异步方法来代替setTimeout。
+
+但是，直接使用 setTimeout 开定时器实现异步，存在一些问题，如果用户也使用其他定时器，异步操作，那么可能无法明确地区分异步的执行先后顺序，这会带来问题。这时候我们需要处理下异步的执行。将异步操作放入一个队列中，按照先后顺序执行(下一个异步操作需要拿到前一个的值)，而且我们需要使用其他的更好的异步方法来代替 setTimeout。
+
 ```js
 const callbacks = [];
-function flushCallbacks(){
-  callbacks.forEach(cb => cb());
+function flushCallbacks() {
+  callbacks.forEach((cb) => cb());
   pending = false;
   callbacks = [];
 }
 
-
-
 let timerFunc;
-if(Promsie){
+if (Promsie) {
   timerFunc = () => {
-    Promise.resolve().then(flushCallbacks)  // 异步里更新。
-  }
-}else if(MutationObserver){
+    Promise.resolve().then(flushCallbacks); // 异步里更新。
+  };
+} else if (MutationObserver) {
   // 微任务  可以监控DOM的变化 监控完毕之后是异步更新
   let observe = new MutationObserver(flushCallbacks);
   let textNode = document.createTextNode(1);
-  observe.observe(textNode,{characterData:true});
+  observe.observe(textNode, { characterData: true });
   // 监控文本结点，当队列清空时，手动修改文本结点的值，触发变化，那么它会调用flushCallbacks
   timerFunc = () => {
     textNode.textContent = 2;
-  }
-}else if(setImmediate){
+  };
+} else if (setImmediate) {
   timerFunc = () => {
-    setImmediate(flushCallbacks)
-  }
-}else{
-    timerFunc = () => {
-      setTimeout(flushCallbacks)
-    }
+    setImmediate(flushCallbacks);
+  };
+} else {
+  timerFunc = () => {
+    setTimeout(flushCallbacks);
+  };
 }
 
-let pending = false;  // 因为内部会调用nextTick，用户也会调用nextTick。但是异步只需要一次。
-export function nextTick(cb){
+let pending = false; // 因为内部会调用nextTick，用户也会调用nextTick。但是异步只需要一次。
+export function nextTick(cb) {
   callbacks.push(cb);
-  if(!pending){
+  if (!pending) {
     timerFunc(); // timerFunc就是一个异步方法
     pending = true;
   }
 }
 ```
-使用timerFunc做兼容，替代原来的setTimeout，得到一个异步函数(始终是一个异步函数，这里是得到几种异步函数的兼容实现方法罢了)。
 
+使用 timerFunc 做兼容，替代原来的 setTimeout，得到一个异步函数(始终是一个异步函数，这里是得到几种异步函数的兼容实现方法罢了)。
 
-## watch的实现
-在vue中watch是用来观察一个数据是否发生变化。它可以有非常多的写法,如下所示：
+## watch 的实现
+
+在 vue 中 watch 是用来观察一个数据是否发生变化。它可以有非常多的写法,如下所示：
+
 ```js
 watcher:{
   // 数组写法 handler是一个数组
@@ -536,38 +546,84 @@ watcher:{
   }
 }
 ```
-因此，我们需要统一将其转化成key:handler这种形式，方便调用。
+
+因此，我们需要统一将其转化成 key:handler 这种形式，方便调用。
+
 ```js
 function initWatch(vm) {
   let watch = vm.$options.watch;
-  for(let key in watch){
-    const handler = watch[key];  // 可能是数组，字符串，对象，函数。
+  for (let key in watch) {
+    const handler = watch[key]; // 可能是数组，字符串，对象，函数。
     // 如果是数组，就循环调用
-    if(Array.isArray(handler)){
+    if (Array.isArray(handler)) {
       handler.forEach((handle) => {
-        createWatcher(vm, key, handler)
-      })
-    }else{
+        createWatcher(vm, key, handler);
+      });
+    } else {
       // 其他形式
-      createWatcher(vm,key,handler)
+      createWatcher(vm, key, handler);
     }
   }
- }
+}
 ```
-最后我们需要将所有的都交给$watch来处理。
+
+最后我们需要将所有的都交给\$watch 来处理。
+
 ```js
- function createWatcher(vm,exprOrFn,handler,options){
-   // options是用来标记用户的传参，当是对象类型时适用。
-   // a:{ handler:function(){},deep:true
-   if(typeof handler === "object" && handler !== null){
+function createWatcher(vm, exprOrFn, handler, options) {
+  // options是用来标记用户的传参，当是对象类型时适用。
+  // a:{ handler:function(){},deep:true
+  if (typeof handler === "object" && handler !== null) {
     options = handler;
-    handler = handler.handler;  // 是一个函数
-   }
-   if(typeof handler === "string"){
-     handler = vm[handler];
-   }
-   // 最终都是通过$watch进行调用
-   return vm.$watch(exprOrFn,handler,options);
- }
- ```
- 因此，最终的核心就是实现$watch方法。
+    handler = handler.handler; // 是一个函数
+  }
+  if (typeof handler === "string") {
+    handler = vm[handler];
+  }
+  // 最终都是通过$watch进行调用
+  return vm.$watch(exprOrFn, handler, options);
+}
+```
+
+因此，最终的核心就是实现\$watch 方法。
+\$watch 的实现，实际上也是创建一个 watcher(这就是前面说的为什么 dep 和 watch 都是多对多的关系)
+核心实现还是在 watcher 上。
+
+```js
+Vue.prototype.$watch = function(exprOrFn, cb, options) {
+  // 数据应该依赖这个watcher,数据变化后立即更新
+  let watcher = new Watcher(this, exprOrFn, cb, { ...options, user: true });
+  if (options && options.immediate) {
+    cb(); // 如果是immediate 立即执行
+  }
+};
+```
+
+## DOM-DIFF
+
+我们目前每次更新都是创建一个新的虚拟 DOM，然后把旧的 DOM 删除，再将虚拟 DOM 插入到父元素上。
+如下所示：
+
+```js
+export function patch(oldVnode, vnode) {
+  let el = createElm(vnode); // 创建一个新的元素
+  let parentElm = oldVnode.parentNode; // 生成真实的DOM
+  parentElm.insertBefore(el, oldVnode.nextSibling); // 将真实DOM插入到老的DOM后面
+  parentElm.removeChild(oldVnode); // 删除老的DOM结点
+  return el;
+}
+```
+
+但是这样的操作，实际上非常消耗性能，因为如果 DOM 结点比较多，比如 100 个 DOM 结点，但是只是修改了其中一个，完全没必要全部操作这些结点。因此，最好的方法就是比较前后差异，然后选择性更新，这就是 DOM DIFF。
+
+DOM DIFF 的规则
+
+1. 如果标签不同，直接替换
+2. 如果标签相同，但是是文本结点，直接替换掉之前的文本内容即可。
+3. 如果标签相同，且不是文本结点，那么需要比较标签的属性和 children 了。
+
+- 标签相同，复用标签，将两者的差异更新到原来的标签上即可。
+- 属性比对：
+  - 老的有，新的没有，删除老的
+  - 新的有，直接用新的
+  - 特殊处理下 style,class 等

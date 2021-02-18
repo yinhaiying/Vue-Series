@@ -1,16 +1,40 @@
 import e from "express";
 
 export function patch(oldVnode, vnode) {
-  // console.log("oldVnode:", oldVnode)
-  let el = createElm(vnode);
-  let parentElm = oldVnode.parentNode;   // 生成真实的DOM
-  parentElm.insertBefore(el, oldVnode.nextSibling)   // 将真实DOM插入到老的DOM后面
-  parentElm.removeChild(oldVnode);   // 删除老的DOM结点
-  return el;
+  console.log("oldVnode:", oldVnode);
+  console.log("newVnode:", vnode);
+
+  if (oldVnode.nodeType === 1) {
+    // 如果是真实结点
+    // console.log("oldVnode:", oldVnode)
+    let el = createElm(vnode);
+    let parentElm = oldVnode.parentNode;   // 生成真实的DOM
+    parentElm.insertBefore(el, oldVnode.nextSibling)   // 将真实DOM插入到老的DOM后面
+    parentElm.removeChild(oldVnode);   // 删除老的DOM结点
+    return el;
+  } else {
+    // 如果是虚拟DOM，
+    if (oldVnode.tag !== vnode.tag) {
+      return oldVnode.el.parentNode.replaceChild(newDOM, oldVnode.el)
+    }
+    //如果是undefined，说明是文本结点
+    if (!oldVnode.tag) {
+      if (oldVnode.text !== vnode.text) {
+        return oldVnode.el.textContent = vnode.text;
+      }
+    }
+    // 标签相同，复用标签，将两者的差异更新到原来的结点即可。
+    if (oldVnode.tag === vnode.tag && oldVnode) {
+      let el = oldVnode.el = vnode.el;
+      // 更新属性  新老属性做对比
+      updateProperties(vnode, oldVnode.data);
+      return el;
+    }
+  }
 }
 
 
-function createElm(vnode) {
+export function createElm(vnode) {
   let {
     tag,
     data,
@@ -33,9 +57,26 @@ function createElm(vnode) {
 }
 
 
-function updateProperties(vnode) {
-  let el = vnode.el;
+function updateProperties(vnode, oldProps = {}) {
+  console.log("update:", vnode)
   let newProps = vnode.data || {};
+  let el = vnode.el;
+  // 老的有，新的没有。 删除属性
+  for (let key in oldProps) {
+    if (!newProps[key]) {
+      el.removeAttribute(key);
+    }
+  }
+
+  let newStyle = newProps.style || {};
+  let oldStyle = oldProps.style || {};
+  // 老的样式中有，新的没有，删除老的样式
+  for (let key in oldStyle) {
+    if (!newStyle[key]) {
+      el.style[key] = "";
+    }
+  }
+  // 新的有，直接用新的
   for (let key in newProps) {
     if (key === "style") {
       for (let styleName in newProps[key]) {
@@ -44,8 +85,8 @@ function updateProperties(vnode) {
     } else if (key === "class") {
       el.className = newProps["class"]
     } else {
+      // console.log("el:", el)
       el.setAttribute(key, newProps[key])
     }
-
   }
 }

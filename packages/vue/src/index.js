@@ -14,4 +14,23 @@ lifecycleMixin(Vue);   // 混合生命周期
 renderMixin(Vue);    // 渲染虚拟DOM
 stateMixin(Vue);     // nexttick
 
+
+
+import { compileToFunctions } from "./compiler/index.js"
+import { createElm, patch } from "./vdom/patch.js"
+const vm1 = new Vue({});
+const vm2 = new Vue({});
+let template = `<div id = "my">123456</div>`
+let render1 = compileToFunctions(template)
+let vnode1 = render1.call(vm1);
+setTimeout(() => {
+  let template2 = `<div id = "my2">456789</div>`
+  let render2 = compileToFunctions(template2)
+  let vnode2 = render2.call(vm2);
+  let el = patch(vnode1, vnode2)
+  document.body.appendChild(el)
+}, 1000)
+
+
+
 export default Vue;

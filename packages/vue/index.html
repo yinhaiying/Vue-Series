@@ -23,47 +23,9 @@
            age:24
          }
        },
-       watch:{
-         "info.name":{
-           handler:function(newValue,oldValue){
-               console.log("info.name....",newValue,oldValue)
-           }
-         },
-        //  "age":function(newValue,oldValue){
-        //    console.log("newValue:",age)
-        //  }
-       }
-      //  render(h){
-      //    return h("div",{id:"oDiv"},"hello")
-      //  },
-      //  template:"<div id = 'div'>hello</div>"
      });
     vm.info.name = "第一次watch修改值"
-     vm.info.name = "第二次watch修改值"
-     // 递归地去拦截数据,拦截a,拦截b，拦截c
-     // 层级越深，性能越差
-    //  console.log("vm:",vm._data.arr);
-    //  console.log("vm:",vm.arr);
-    //  vm.arr.push({b:1})
 
-    //  vm._data.a = {b:"hello"};   // a将整个对象替换了，因此a身上的元素都不再被拦截了
-    //  // 但是实际上还是需要拦截的。
-    //  vm._data.a.b = 3;  // 设置b没有触发set方法，因此新增的数据页
-
-//     setTimeout(() => {
-//       // vm.arr[0] = 100;  通过索引更新数组是不生效的。
-//       // vm.arr.length = 100; 更改数组长度也是无效的。
-//       // vm.arr[0].a = 100;   如果数组的元素是对象，那么是可以被监测到的
-//       vm.arr.push("4");
-//       vm.arr.push("5");
-//       vm.arr.push("6");
-//       vm.arr.push("7");
-//       vm.name = 300
-//       vm.$nextTick(function(){
-//         console.log("用户的nextTick")
-//       })
-// //
-//     },1000)
   </script>
 </body>
 </html>
