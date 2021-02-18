@@ -516,3 +516,58 @@ export function nextTick(cb){
 }
 ```
 使用timerFunc做兼容，替代原来的setTimeout，得到一个异步函数(始终是一个异步函数，这里是得到几种异步函数的兼容实现方法罢了)。
+
+
+## watch的实现
+在vue中watch是用来观察一个数据是否发生变化。它可以有非常多的写法,如下所示：
+```js
+watcher:{
+  // 数组写法 handler是一个数组
+  a:[
+    function(newValue,oldValue){},
+    function(newValue,oldValue){}
+  ],
+  // handler是一个函数
+  b:function(){},
+  // handler是一个对象
+  c:{
+    handler:function(){},
+    deep:true
+  }
+}
+```
+因此，我们需要统一将其转化成key:handler这种形式，方便调用。
+```js
+function initWatch(vm) {
+  let watch = vm.$options.watch;
+  for(let key in watch){
+    const handler = watch[key];  // 可能是数组，字符串，对象，函数。
+    // 如果是数组，就循环调用
+    if(Array.isArray(handler)){
+      handler.forEach((handle) => {
+        createWatcher(vm, key, handler)
+      })
+    }else{
+      // 其他形式
+      createWatcher(vm,key,handler)
+    }
+  }
+ }
+```
+最后我们需要将所有的都交给$watch来处理。
+```js
+ function createWatcher(vm,exprOrFn,handler,options){
+   // options是用来标记用户的传参，当是对象类型时适用。
+   // a:{ handler:function(){},deep:true
+   if(typeof handler === "object" && handler !== null){
+    options = handler;
+    handler = handler.handler;  // 是一个函数
+   }
+   if(typeof handler === "string"){
+     handler = vm[handler];
+   }
+   // 最终都是通过$watch进行调用
+   return vm.$watch(exprOrFn,handler,options);
+ }
+ ```
+ 因此，最终的核心就是实现$watch方法。

@@ -19,18 +19,35 @@ class Watcher {
     this.exprOrFn = exprOrFn;
     this.cb = cb;
     this.options = options;
+    this.user = options.user;  // 用户定义的watcher
     this.id = id++;  // watcher唯一标识
     this.deps = [];  // watcher记录有多少个依赖项，比如name,age
     this.depsId = new Set();   // set用来存放id确保唯一性
     if (typeof exprOrFn === "function") {
       this.getter = exprOrFn;
+    }else{
+      // 这里的exprOrFn是字符串表达式 "info.name"。我们需要取到它对应的值
+      // vm.info.name
+      this.getter = function(){
+        
+        let path = exprOrFn.split(".");
+        let obj = vm;
+        for(let i = 0;i < path.length;i++){
+          obj = obj[path[i]]
+        }
+        return obj;
+      }
     }
-    this.get();   // 创建watcher实例时，默认会执行
+    // 创建watcher实例时，默认会执行
+    // 调用get方法就是进行一次取值操作
+    this.value = this.get();  
   }
   get() {
     pushTarget(this);
-    this.getter();
-    popTarget()
+    let result = this.getter();
+    console.log("result:",result)
+    popTarget();
+    return result;
   }
   update() {
     // 这里每次调用，都会触发get方法，实现一次更新，我们不希望如此频繁的更新。
@@ -48,7 +65,13 @@ class Watcher {
     }
   }
   run(){
-    this.get();
+    let newValue = this.get();
+    let oldValue = this.value;
+    this.value = newValue;
+    console.log("run:",newValue,oldValue)
+    if(this.user){
+      this.cb.call(this.vm,newValue,oldValue);
+    }
   }
 }
 let queue = [];
@@ -69,8 +92,14 @@ function queueWatcher(watcher){
 }
 
 function flushSchedulerQueue(){
-  console.log("flushSchedule")
-  queue.forEach((watcher) => watcher.run());
+  queue.forEach((watcher) => {
+    // 只有是渲染watcher的时候，才调用。
+    // 用户定义的watcher，是值修改时才调用。
+     watcher.run();
+     if(!watcher.user){
+       watcher.cb();
+     }
+  });
   queue = [];
   has = {};
   pending = true;

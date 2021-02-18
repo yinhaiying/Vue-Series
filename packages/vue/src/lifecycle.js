@@ -4,7 +4,7 @@ import { patch } from "./vdom/patch"
 export function lifecycleMixin(Vue) {
   Vue.prototype._update = function (vnode) {
     const vm = this;
-    console.log("_update:更新了几次")
+    // console.log("_update:更新了几次")
     // 用新的创建的元素替换原有的$el
     vm.$el = patch(vm.$el, vnode)
   }

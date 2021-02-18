@@ -64,7 +64,7 @@ if(Promise){
 let pending = false;  // 因为内部会调用nextTick，用户也会调用nextTick。但是异步只需要一次。
 export function nextTick(cb){
   callbacks.push(cb);
-  console.log("nextTick:",callbacks.length)
+  // console.log("nextTick:",callbacks.length)
   if(!pending){
     timerFunc(); // timerFunc就是一个异步方法
     pending = true;

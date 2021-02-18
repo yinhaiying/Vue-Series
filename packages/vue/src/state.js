@@ -1,5 +1,6 @@
 import { nextTick, proxy } from "./utils.js";
 import { observe } from "./observer/index.js";
+import Watcher from "./observer/watcher.js";
 
 export function initState(vm) {
   const opts = vm.$options;
@@ -16,7 +17,7 @@ export function initState(vm) {
     initComputed(vm);
   }
   if (opts.watch) {
-    initComputed(vm)
+    initWatch(vm)
   }
 }
 
@@ -36,11 +37,50 @@ function initData(vm) {
   observe(data);
 }
 function initComputed(vm) { }
-function initWatch(vm) { }
+
+
+
+function initWatch(vm) {
+  let watch = vm.$options.watch;
+  for(let key in watch){
+    const handler = watch[key];  // 可能是数组，字符串，对象，函数。
+    // 如果是数组，就循环调用
+    if(Array.isArray(handler)){
+      handler.forEach((handle) => {
+        createWatcher(vm, key, handler)
+      })
+    }else{
+      // 其他形式
+      createWatcher(vm,key,handler)
+    }
+  }
+ }
+
+ function createWatcher(vm,exprOrFn,handler,options){
+   // 当传入的是一个对象时，options可以用来接收配置参数
+   // a:{ handler:function(){},deep:true
+   if(typeof handler === "object" && handler !== null){
+    options = handler;
+    handler = handler.handler;  // 是一个函数
+   }
+   if(typeof handler === "string"){
+     handler = vm[handler];
+   }
+   // 最终都是通过$watch进行调用
+   return vm.$watch(exprOrFn,handler,options);
+ }
 
 
 export function stateMixin(Vue){
   Vue.prototype.$nextTick = function(cb){
     nextTick(cb);
   }
+  Vue.prototype.$watch = function (exprOrFn,cb,options) {
+    // 数据应该依赖这个watcher,数据变化后立即更新
+    let watcher = new Watcher(this, exprOrFn, cb, {...options,user:true});
+    if (options && options.immediate) {
+      cb()  // 如果是immediate 立即执行
+    }
+  }
 }
+
