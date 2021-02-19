@@ -1,19 +1,13 @@
 
 export function patch(oldVnode, vnode) {
-  console.log("oldVnode:", oldVnode);
-  // console.log("newVnode:", vnode);
-
   if (oldVnode.nodeType === 1) {
     // 如果是真实结点
-
     let el = createElm(vnode);
     let parentElm = oldVnode.parentNode;   // 生成真实的DOM
     parentElm.insertBefore(el, oldVnode.nextSibling)   // 将真实DOM插入到老的DOM后面
     parentElm.removeChild(oldVnode);   // 删除老的DOM结点
     return el;
   } else {
-        console.log("oldVnode111:", oldVnode);
-        console.log("newVnode1111:", vnode);
     // 如果是虚拟DOM，
     if (oldVnode.tag !== vnode.tag) {
       return oldVnode.el.parentNode.replaceChild(newDOM, oldVnode.el)
@@ -29,7 +23,6 @@ export function patch(oldVnode, vnode) {
       let el = vnode.el = oldVnode.el;
       // 更新属性  新老属性做对比
       updateProperties(vnode, oldVnode.data);
-      console.log("oldVnode.children:", oldVnode.children)
       updateChildren(vnode, oldVnode.children)
       return el;
     }
@@ -96,15 +89,14 @@ function updateProperties(vnode, oldProps = {}) {
 
 // 比较children
 function updateChildren(vnode, oldChildren = []) {
-  console.log("oldChildren:", oldChildren)
+  console.log("oldChildren:", oldChildren);
+  console.log("newChildren:",vnode.children)
   let el = vnode.el;  // el拿到的是真实结点
   let newChildren = vnode.children || [];
   // 老的有，新的没有，直接删除原来的子元素
   if (oldChildren.length > 0 && newChildren.length === 0) {
-    console.log("1")
     el.innerHTML = "";
   } else if (oldChildren.length == 0 && newChildren.length > 0) {
-    console.log("2")
     // 老的没有，新的有
     for (let i = 0; i < newChildren.length; i++) {
       let child = newChildren[i];
@@ -126,8 +118,8 @@ function updateChildren(vnode, oldChildren = []) {
 对新旧children同时做循环，哪个先结束，就终止循环。剩下的元素就是进行删除或者添加。
 
  */
+
 function patchChildren(oldChildren,newChildren,parent){
-  console.log("这里执行了吗")
   // oldChildren开头指针
   let oldStartIndex = 0;
   let oldStartVnode = oldChildren[0];
@@ -142,7 +134,9 @@ function patchChildren(oldChildren,newChildren,parent){
   let newEndVnode = newChildren[oldChildren.length];
   // 新旧children同时做循环， 哪个先结束， 就终止循环。 剩下的元素就是进行删除或者添加。
   while(oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex){
-    if(isSameVnode(oldStartVnode,newStartVnode)){
+    const _isSameVnode = isSameVnode(oldStartVnode, newStartVnode);
+    console.log("_isSameVnode:", _isSameVnode,oldStartVnode, newStartVnode)
+    if (isSameVnode(oldStartVnode, newStartVnode)) {
       patch(oldStartVnode,newStartVnode);  // 更新属性，递归更新子节点
       oldStartVnode = oldChildren[++oldStartIndex];
       newStartVnode = newChildren[++newStartIndex];
@@ -152,14 +146,13 @@ function patchChildren(oldChildren,newChildren,parent){
   
   // 将多余的插入进去
   if(newStartIndex <= newEndIndex){
-    for(let i = 0;i < newEndIndex;i++){
+    for (let i = newStartIndex; i < newChildren.length; i++) {
       parent.appendChild(createElm(newChildren[i]));
     }
   }
 }
 
-function isSameVnode(oldVnode,newVnode){
+function isSameVnode(oldVnode, newVnode) {
   // 只要标签和key一样就认为是一个虚拟结点，不需要属性也一样
-  console.log("oldVnode:",oldVnode,"newVnode:",newVnode)
   return oldVnode.tag === newVnode.tag;
 }
