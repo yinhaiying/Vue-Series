@@ -38,22 +38,23 @@ let template = `<ul id = "my" class = "hello">
     <li key = "B" style = "background:green">B</li> 
     <li key = "C" style = "background:yellow">C</li>
     <li key = "D" style = "background:pink">D</li>
-    </ul>`
+    <li key = "H" style = "background:black">H</li> 
+  </ul>`
 let render1 = compileToFunctions(template)
 let vnode1 = render1.call(vm1);
 setTimeout(() => {
   document.body.appendChild(createElm(vnode1));
   let template2 = `<ul>
-    <li key = "D" style = "background:pink">D</li>
+    <li key = "M" style = "background:pink">M</li>
     <li key = "C" style = "background:yellow">C</li>
     <li key = "B" style = "background:green">B</li> 
-    <li key = "A" style = "background:red">A</li>
+    <li key = "Q">Q</li>
   </ul>`
   let render2 = compileToFunctions(template2)
   let vnode2 = render2.call(vm2);
   setTimeout(() => {
     patch(vnode1, vnode2);
-  },1000)
+  },3000)
 }, 0)
 
 

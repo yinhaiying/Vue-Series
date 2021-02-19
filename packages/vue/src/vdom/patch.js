@@ -131,10 +131,16 @@ function patchChildren(oldChildren,newChildren,parent){
   // 结束指针
   let newEndIndex = newChildren.length -1;
   let newEndVnode = newChildren[oldChildren.length];
+  let map = makeIndexByKey(oldChildren);
   // 新旧children同时做循环， 哪个先结束， 就终止循环。 剩下的元素就是进行删除或者添加。
   while(oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex){
     const _isSameVnode = isSameVnode(oldStartVnode, newStartVnode);
-    if (isSameVnode(oldStartVnode, newStartVnode)) {
+    if(oldStartVnode === null){
+      // 如果是null，说明这个位置已经被处理过了，直接走下一个
+      oldStartVnode = oldChildren[++oldStartIndex];
+    }else if(oldEndVnode === null){
+      oldEndVnode =oldChildren[--oldEndIndex];
+    }else if (isSameVnode(oldStartVnode, newStartVnode)) {
       // 比较开始的两个vnode
       patch(oldStartVnode,newStartVnode);  // 更新属性，递归更新子节点
       oldStartVnode = oldChildren[++oldStartIndex];
@@ -155,10 +161,21 @@ function patchChildren(oldChildren,newChildren,parent){
       parent.insertBefore(oldEndVnode.el,oldStartVnode.el);
       oldEndVnode = oldChildren[--oldEndIndex];
       newStartVnode = newChildren[++newStart];
+    }else{
+      // 暴力破解
+      let moveIndex = map[newStartVnode.key];
+      if(moveIndex === undefined){
+        parent.insertBefore(createElm(newStartVnode),oldStartVnode.el)
+      }else{
+          let moveNode = oldChildren[moveIndex]; // 这个老的虚拟结点需要移动
+          oldChildren[moveIndex] = null;
+          parent.insertBefore(moveNode.el, oldStartVnode.el);
+          patch(moveVnode,newStartVnode);  // 比较属性和儿子
+      }
+      newStartVnode = newChildren[++newStartIndex];  // 新的比较完，就比较下一个新的。
     }
   }
-  console.log("newStartIndex:", newStartIndex)
-  console.log("newEndIndex:", newEndIndex)
+
   // 将多余的插入进去
   if(newStartIndex <= newEndIndex){
     for (let i = newStartIndex; i < newChildren.length; i++) {
@@ -171,9 +188,31 @@ function patchChildren(oldChildren,newChildren,parent){
       parent.insertBefore(createElm(newChildren[i]), ele)
     }
   }
+    console.log("oldStartIndex:", oldStartIndex)
+    console.log("oldEndIndex:", oldEndIndex)
+  // 老的结点还有没处理的，说明这些老结点时不需要的。
+  // 如果有null,说明已经被处理了。
+  if(oldStartIndex <= oldEndIndex){
+    for(let i = oldStartIndex;i<oldChildren.length;i++){
+      let child = oldChildren[i];
+      if(child !== null){
+        parent.removeChild(child.el);
+      }
+    }
+  }
 }
 
 function isSameVnode(oldVnode, newVnode) {
   // 只要标签和key一样就认为是一个虚拟结点，不需要属性也一样
   return oldVnode.tag === newVnode.tag;
+}
+
+function makeIndexByKey(oldChildren){
+  let map = {};
+  oldChildren.forEach((item,index) => {
+    if(item.key){
+      map[item.key] = index;
+    }
+  });
+  return map;  // {A:0,B:1,C:2}
 }
