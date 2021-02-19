@@ -36,8 +36,29 @@ function initData(vm) {
   // 数组 对象里面嵌套数组
   observe(data);
 }
-function initComputed(vm) { }
+function initComputed(vm) {
+  let computed = vm.$options.computed;
+  // 1. 需要有watcher  2. 需要Object.defineProperty  3. dirty属性
+  const watchers = vm._computedWatchers = {};// 用来稍后存放计算属性的watcher
+  for(let key in computed){
+    const userDef = computed[key];
+    const getter = typeof userDef === "function"? userDef:userDef.get;
+    defineComputed(vm,key,userDef);
+    console.log("userDef:", userDef)
+  }
+  
+ }
 
+ const sharedPropertyDefinition = {};
+ function defineComputed(target,key,userDef){
+   if(typeof userDef === "function"){
+     sharedPropertyDefinition.get = userDef;
+   }else{
+     sharedPropertyDefinition.get = userDef.get;
+     sharedPropertyDefinition.set = userDef.set;
+   }
+   Object.defineProperty(target, key, sharedPropertyDefinition);
+ }
 
 
 function initWatch(vm) {

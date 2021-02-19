@@ -693,3 +693,22 @@ function updateProperties(vnode, oldProps = {}) {
 ```
 我们可以看下，如果用户翻转了一下，比较时会发现key值都不相同了。那么会全都重新创建，而不是通过移动来实现优化。
 7. 暴力比较。如果无论是头头比较，头尾比较，尾头比较还是尾尾比较。都没有相同的，那么就只剩下暴力比较了。暴力比较的规则就是：将新结点的值与旧的所有结点比较，如果没有相同的直接插入到旧节点的第一个的前面，如果有相同的就复用，将旧结点移动到原来的第一个的前面,同时它的位置需要保留置为null即可。最后将老的没有遍历到的删除即可。
+
+
+
+## Computed
+Vue的计算属性computed，只要一取computed中的某个值，他就会执行，因此，它的内部也使用了Object.defineProperty，内部有一个变量dirty控制这个computed中的函数是否要执行。同时，computed是依赖于它内部使用的值，也就是说它也是一个watcher。内部属性会收集这个watcher。
+1. 给computed每个属性加上Object.defineProperty。将get的属性绑定到vm身上，其中get方法就是我们在watch中定义的方法。
+```js
+ const sharedPropertyDefinition = {};
+ function defineComputed(target,key,userDef){
+   if(typeof userDef === "function"){
+     sharedPropertyDefinition.get = userDef;
+   }else{
+     sharedPropertyDefinition.get = userDef.get;
+     sharedPropertyDefinition.set = userDef.set;
+   }
+   Object.defineProperty(target, key, sharedPropertyDefinition);
+ }
+```
+但是，这种方式实现是没有缓存的。每次通过vm.info调用一次就执行一次。

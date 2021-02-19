@@ -9,7 +9,7 @@
 </head>
 <body>
   <div id = "app" style = "color:red">
-    hello{{info.name}}
+    hello{{name}}
     <span id= "my">world</span>
   </div>
   <script>
@@ -17,16 +17,25 @@
        el:"#app",
        data(){
          return {
-           info:{
-             name:"hai"
-           },
+           name:"hai",
            age:24
          }
        },
+       computed:{
+         // 会根据依赖的数据 重新执行
+         info(){
+           console.log("执行：")
+           return "姓名" + this.name +",年龄：" + this.age
+         }
+       }
      });
-     setTimeout(() => {
-        vm.info.name = "第一次watch修改值"
-     },3000)
+    //  setTimeout(() => {
+    //     vm.info.name = "第一次watch修改值"
+    //  },3000)
+    setTimeout(() => {
+      console.log("info:",vm.info);
+      console.log("info:",vm.info);
+    },1000)
     
 
   </script>
