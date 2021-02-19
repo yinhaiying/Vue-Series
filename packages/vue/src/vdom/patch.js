@@ -5,13 +5,15 @@ export function patch(oldVnode, vnode) {
 
   if (oldVnode.nodeType === 1) {
     // 如果是真实结点
-    console.log("oldVnode:", oldVnode)
+
     let el = createElm(vnode);
     let parentElm = oldVnode.parentNode;   // 生成真实的DOM
     parentElm.insertBefore(el, oldVnode.nextSibling)   // 将真实DOM插入到老的DOM后面
     parentElm.removeChild(oldVnode);   // 删除老的DOM结点
     return el;
   } else {
+        console.log("oldVnode111:", oldVnode);
+        console.log("newVnode1111:", vnode);
     // 如果是虚拟DOM，
     if (oldVnode.tag !== vnode.tag) {
       return oldVnode.el.parentNode.replaceChild(newDOM, oldVnode.el)
@@ -68,6 +70,7 @@ function updateProperties(vnode, oldProps = {}) {
   }
 
   let newStyle = newProps.style || {};
+  console.log("newStyle:",newStyle)
   let oldStyle = oldProps.style || {};
   // 老的样式中有，新的没有，删除老的样式
   for (let key in oldStyle) {
