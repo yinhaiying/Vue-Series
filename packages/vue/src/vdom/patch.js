@@ -80,7 +80,6 @@ function updateProperties(vnode, oldProps = {}) {
     } else if (key === "class") {
       el.className = newProps["class"]
     } else {
-      // console.log("el:", el)
       el.setAttribute(key, newProps[key])
     }
   }
@@ -89,8 +88,6 @@ function updateProperties(vnode, oldProps = {}) {
 
 // 比较children
 function updateChildren(vnode, oldChildren = []) {
-  console.log("oldChildren:", oldChildren);
-  console.log("newChildren:",vnode.children)
   let el = vnode.el;  // el拿到的是真实结点
   let newChildren = vnode.children || [];
   // 老的有，新的没有，直接删除原来的子元素
@@ -182,14 +179,11 @@ function patchChildren(oldChildren,newChildren,parent){
       // 向后插入： el:null
       // 向前插入： E A B C D。当前处于E，找到它的后一个元素即A，然后进行插入。insertBefore
       let ele = newChildren[newEndIndex+1] == null? null:newChildren[newEndIndex+1].el;
-      console.log("ele:",ele)
       // parent.appendChild(createElm(newChildren[i]));
       // insertBefore如果后面的元素是null,会自动插入到最后面。
       parent.insertBefore(createElm(newChildren[i]), ele)
     }
   }
-    console.log("oldStartIndex:", oldStartIndex)
-    console.log("oldEndIndex:", oldEndIndex)
   // 老的结点还有没处理的，说明这些老结点时不需要的。
   // 如果有null,说明已经被处理了。
   if(oldStartIndex <= oldEndIndex){

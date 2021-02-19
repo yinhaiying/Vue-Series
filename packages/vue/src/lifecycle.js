@@ -6,7 +6,15 @@ export function lifecycleMixin(Vue) {
     const vm = this;
     // console.log("_update:更新了几次")
     // 用新的创建的元素替换原有的$el
-    vm.$el = patch(vm.$el, vnode)
+    // 区分一下是首次渲染还是更新。
+    const prevVnode = vm._vnode;  // 第一次vnode不存在
+    if(!prevVnode){
+      vm.$el = patch(vm.$el, vnode);
+    }else{
+      vm.$el = patch(prevVnode, vnode);
+    }
+    vm._vnode = vnode; // 保存旧的vnode
+    
   }
 }
 
