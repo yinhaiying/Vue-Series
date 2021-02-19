@@ -1,7 +1,6 @@
-import e from "express";
 
 export function patch(oldVnode, vnode) {
-  // console.log("oldVnode:", oldVnode);
+  console.log("oldVnode:", oldVnode);
   // console.log("newVnode:", vnode);
 
   if (oldVnode.nodeType === 1) {
@@ -25,7 +24,7 @@ export function patch(oldVnode, vnode) {
     }
     // 标签相同，复用标签，将两者的差异更新到原来的结点即可。
     if (oldVnode.tag === vnode.tag && oldVnode) {
-      let el = oldVnode.el && vnode.el ? oldVnode.el : document.body;
+      let el = vnode.el = oldVnode.el;
       // 更新属性  新老属性做对比
       updateProperties(vnode, oldVnode.data);
       updateChildren(vnode, oldVnode.children)
@@ -60,7 +59,7 @@ export function createElm(vnode) {
 
 function updateProperties(vnode, oldProps = {}) {
   let newProps = vnode.data || {};
-  let el = vnode.el || document.body;
+  let el = vnode.el;
   // 老的有，新的没有。 删除属性
   for (let key in oldProps) {
     if (!newProps[key]) {
@@ -92,9 +91,10 @@ function updateProperties(vnode, oldProps = {}) {
 }
 
 
+// 比较children
 function updateChildren(vnode, oldChildren = []) {
   console.log("比对children")
-  let el = vnode.el || document.body;  // el拿到的是真实结点
+  let el = vnode.el;  // el拿到的是真实结点
   let newChildren = vnode.children || [];
   // 老的有，新的没有，直接删除原来的子元素
   if (oldChildren.length > 0 && newChildren.length === 0) {

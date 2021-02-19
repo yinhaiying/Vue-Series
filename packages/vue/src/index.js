@@ -22,7 +22,7 @@ const vm1 = new Vue({
   data: { name: "111" }
 });
 const vm2 = new Vue({});
-let template = `<div id = "my">123456</div>`
+let template = `<div id = "my"><span>123456</span> </div>`
 let render1 = compileToFunctions(template)
 let vnode1 = render1.call(vm1);
 
