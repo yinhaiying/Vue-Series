@@ -22,12 +22,16 @@ const vm1 = new Vue({
   data: { name: "111" }
 });
 const vm2 = new Vue({});
-let template = `<div id = "my" class = "hello"> </div>`
+let template = `<ul id = "my" class = "hello"><li>123456</li></div>`
 let render1 = compileToFunctions(template)
 let vnode1 = render1.call(vm1);
 setTimeout(() => {
   document.body.appendChild(createElm(vnode1));
-  let template2 = `<div id = "my2" aaa = "xxx" style = {color:red}><span>123456</span></div>`
+  let template2 = `<ul>
+    <li id = "my" class = "hello">123456</li>
+    <li>123456</li>
+    <li>123456</li>
+  </ul>`
   let render2 = compileToFunctions(template2)
   let vnode2 = render2.call(vm2);
   setTimeout(() => {
