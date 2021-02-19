@@ -103,7 +103,6 @@ function updateChildren(vnode, oldChildren = []) {
       el.appendChild(createElm(child))
     }
   }else{
-     console.log("3")
     patchChildren(oldChildren,newChildren,el)
   }
 }
@@ -135,19 +134,32 @@ function patchChildren(oldChildren,newChildren,parent){
   // 新旧children同时做循环， 哪个先结束， 就终止循环。 剩下的元素就是进行删除或者添加。
   while(oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex){
     const _isSameVnode = isSameVnode(oldStartVnode, newStartVnode);
-    console.log("_isSameVnode:", _isSameVnode,oldStartVnode, newStartVnode)
     if (isSameVnode(oldStartVnode, newStartVnode)) {
+      // 比较开始的两个vnode
       patch(oldStartVnode,newStartVnode);  // 更新属性，递归更新子节点
       oldStartVnode = oldChildren[++oldStartIndex];
       newStartVnode = newChildren[++newStartIndex];
       console.log("newStartIndex:", newStartIndex)
+    } else if (isSameVnode(oldEndVnode, newEndVnode)){
+      // 如果前面不相同，那就从后面开始比较,看是否是相同的vnode
+      patch(oldEndVnode, newEndVnode); // 更新属性，递归更新子节点
+      oldEndVnode = oldChildren[--oldEndIndex];
+      newEndVnode = newChildren[--newEndIndex];
+      console.log("newEndIndex1111:", newStartIndex)
     }
   }
-  
+  console.log("newStartIndex:", newStartIndex)
+  console.log("newEndIndex:", newEndIndex)
   // 将多余的插入进去
   if(newStartIndex <= newEndIndex){
     for (let i = newStartIndex; i < newChildren.length; i++) {
-      parent.appendChild(createElm(newChildren[i]));
+      // 向后插入： el:null
+      // 向前插入： E A B C D。当前处于E，找到它的后一个元素即A，然后进行插入。insertBefore
+      let ele = newChildren[newEndIndex+1] == null? null:newChildren[newEndIndex+1].el;
+      console.log("ele:",ele)
+      // parent.appendChild(createElm(newChildren[i]));
+      // insertBefore如果后面的元素是null,会自动插入到最后面。
+      parent.insertBefore(createElm(newChildren[i]), ele)
     }
   }
 }

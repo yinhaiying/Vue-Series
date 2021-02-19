@@ -32,10 +32,10 @@ let vnode1 = render1.call(vm1);
 setTimeout(() => {
   document.body.appendChild(createElm(vnode1));
   let template2 = `<ul>
-    <li key = "A" style = "background:red"> A </li>
+    <li key = "E" style = "background:pink">E</li>
+    <li key = "A" style = "background:red">A</li>
     <li key = "B" style ="background:green">B</li>
     <li key = "C" style = "background:yellow">C</li>
-    <li key = "E" style = "background:pink">E</li>
   </ul>`
   let render2 = compileToFunctions(template2)
   let vnode2 = render2.call(vm2);
