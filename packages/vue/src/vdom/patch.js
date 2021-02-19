@@ -139,13 +139,22 @@ function patchChildren(oldChildren,newChildren,parent){
       patch(oldStartVnode,newStartVnode);  // 更新属性，递归更新子节点
       oldStartVnode = oldChildren[++oldStartIndex];
       newStartVnode = newChildren[++newStartIndex];
-      console.log("newStartIndex:", newStartIndex)
     } else if (isSameVnode(oldEndVnode, newEndVnode)){
       // 如果前面不相同，那就从后面开始比较,看是否是相同的vnode
       patch(oldEndVnode, newEndVnode); // 更新属性，递归更新子节点
       oldEndVnode = oldChildren[--oldEndIndex];
       newEndVnode = newChildren[--newEndIndex];
-      console.log("newEndIndex1111:", newStartIndex)
+    } else if (isSameVnode(oldStartVnode, newEndVnode)){
+      patch(oldStartVnode, newEndVnode);
+      // 将当前元素插入到尾部的最后一个元素的下一个元素的前面
+      parent.insertBefore(oldStartVnode.el,oldEndVnode.el.nextSibling);
+      oldStartVnode = oldChildren[++oldStartIndex];
+      newEndVnode = newChildren[--newEndIndex];
+    }else if(isSameVnode(oldEndVnode,newStartVnode)){
+      patch(oldEndVnode, newStartVnode);
+      parent.insertBefore(oldEndVnode.el,oldStartVnode.el);
+      oldEndVnode = oldChildren[--oldEndIndex];
+      newStartVnode = newChildren[++newStart];
     }
   }
   console.log("newStartIndex:", newStartIndex)
