@@ -63,7 +63,7 @@ class Watcher {
   addDep(dep) {
     let id = dep.id;
     if (!this.depsId.has(id)) {
-      this.deps.push(id);
+      this.deps.push(dep);
       this.depsId.add(id);
       // dep在把对应的watcher拿到，然后存进去
       dep.addSub(this);
@@ -80,6 +80,14 @@ class Watcher {
   evaluate(){
     this.value = this.get();
     this.dirty = false;
+  }
+  depend(){
+    let i = this.deps.length;
+    console.log("this.deps:",this.deps)
+    // 通过watcher能够找到所有dep。然后让所有的dep都记住这个渲染watcher
+    while(i--){
+      this.deps[i].depend();   // 让dep去存储渲染watcher。
+    }
   }
 }
 let queue = [];

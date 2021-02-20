@@ -1,6 +1,7 @@
 import { nextTick, proxy } from "./utils.js";
 import { observe } from "./observer/index.js";
 import Watcher from "./observer/watcher.js";
+import Dep from "./observer/dep.js";
 
 export function initState(vm) {
   const opts = vm.$options;
@@ -82,7 +83,10 @@ function createdComputedGetter(key,userDef){
     const watcher = this._computedWatchers[key]; // 拿到对应属性的watcher。
     if(watcher){
       if(watcher.dirty){
-        watcher.evaluate();  // 对当前watcher求职
+        watcher.evaluate();  // 对当前watcher求值
+        if(Dep.target ){   // 说明还有渲染watcher也应该收集起来。
+          watcher.depend()
+        }
       }
       return watcher.value;
     }

@@ -10,6 +10,7 @@
 <body>
   <div id = "app" style = "color:red">
     hello{{name}}
+    {{info}}
     <span id= "my">world</span>
   </div>
   <script>
@@ -28,13 +29,14 @@
          }
        }
      });
-    setTimeout(() => {
-      console.log("info:",vm.info);
-    },1000)
+    // setTimeout(() => {
+    //   console.log("info:",vm.info);
+    // },1000)
     setTimeout(() => {
       vm.name = "海鹰"
       console.log("info:",vm.info);
     },3000)
+    // vm.name = "海鹰"
     
 
   </script>

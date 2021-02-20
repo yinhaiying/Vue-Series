@@ -32,11 +32,14 @@ class Dep {
 
 }
 Dep.target = null;
+let stack = [];
 export function pushTarget(watcher) {
   Dep.target = watcher;
+  stack.push(watcher);   // 有渲染watcher和其他的watcher
 }
 export function popTarget() {
-  Dep.target = null;
+  stack.pop();
+  Dep.target = stack[stack.length -1];
 }
 
 export default Dep
