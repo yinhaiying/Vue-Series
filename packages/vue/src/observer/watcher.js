@@ -20,6 +20,8 @@ class Watcher {
     this.cb = cb;
     this.options = options;
     this.user = options.user;  // 用户定义的watcher
+    this.lazy = options.lazy;  // 如果属性上有lazy属性，说明是一个计算属性。
+    this.dirty = this.lazy;    // dirty代表取值时，是否要执行用户的方法
     this.id = id++;  // watcher唯一标识
     this.deps = [];  // watcher记录有多少个依赖项，比如name,age
     this.depsId = new Set();   // set用来存放id确保唯一性
@@ -40,19 +42,23 @@ class Watcher {
     }
     // 创建watcher实例时，默认会执行
     // 调用get方法就是进行一次取值操作
-    this.value = this.get();
+    this.value = this.lazy ? void 0 : this.get();
   }
   get() {
     pushTarget(this);
-    let result = this.getter();
+    let result = this.getter.call(this.vm);
+    
     popTarget();
     return result;
   }
   update() {
-    // 这里每次调用，都会触发get方法，实现一次更新，我们不希望如此频繁的更新。
-    //
-    queueWatcher(this);  // 暂存
-    // this.get();
+    if(this.lazy){  // lazy为true，说明是计算属性，计算属性更新，只需要把dirty变成true即可。
+      this.dirty = true;  // 页面重新渲染的时候，就能够重新获取值了。
+    }else{
+      // 这里每次调用，都会触发get方法，实现一次更新，我们不希望如此频繁的更新。
+      queueWatcher(this); // 暂存
+      // this.get();
+    }
   }
   addDep(dep) {
     let id = dep.id;
@@ -70,6 +76,10 @@ class Watcher {
     if (this.user) {
       this.cb.call(this.vm, newValue, oldValue);
     }
+  }
+  evaluate(){
+    this.value = this.get();
+    this.dirty = false;
   }
 }
 let queue = [];

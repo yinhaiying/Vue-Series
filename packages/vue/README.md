@@ -711,4 +711,43 @@ Vue的计算属性computed，只要一取computed中的某个值，他就会执�
    Object.defineProperty(target, key, sharedPropertyDefinition);
  }
 ```
-但是，这种方式实现是没有缓存的。每次通过vm.info调用一次就执行一次。
+但是，这种方式实现是没有缓存的。每次通过vm.info调用一次就执行一次。我们都知道Vue中computed相比于watch的一个重要的区别就是computed是有缓存的。解决办法就是定义一个高阶函数，使用一个dirty参数来判断是否需要执行用户定义的computed方法。
+```js
+ const sharedPropertyDefinition = {};
+ function defineComputed(target,key,userDef){
+   if(typeof userDef === "function"){
+     sharedPropertyDefinition.get = createdComputedGetter(key);  
+   }else{
+     sharedPropertyDefinition.get = createdComputedGetter(key);
+     sharedPropertyDefinition.set = userDef.set;
+   }
+   Object.defineProperty(target, key, sharedPropertyDefinition);
+ }
+```
+如上所示，我们不再直接就取用户定义的computed方法，而是在外面封装一层，定义成createdComputedGetter，这个方法的实现如下：
+```js
+function createdComputedGetter(key){
+  return function(){  // 此方法才是我们执行的方法。每次取值会调用
+    // 这里的this是vm
+    const watcher = this._computedWatchers[key]; // 拿到对应属性的watcher。
+    if(watcher){
+      if(watcher.dirty){   
+        watcher.evaluate();  // 对当前watcher求职
+      }
+      return watcher.value;
+    }
+  }
+}
+```
+我们可以看到，这个方法就是返回一个方法，这是每次都会执行的，但是用户定义的方法是否执行，需要通过dirty参数来控制，也就是说我们只需要在watcher中定义一个dirty属性来控制它的执行就行。在取值时第一次dirty为true，取值后变为fasle，只要依赖没更新就一直不会执行，而是调用原来的值，也就是缓存的值。只有在set的时候，也就是它的依赖更新时将dirty变为true。这样的话就实现了缓存。
+```js
+  update() {
+    if(this.lazy){  // lazy为true，说明是计算属性，计算属性更新，只需要把dirty变成true即可。
+      this.dirty = true;  // 页面重新渲染的时候，就能够重新获取值了。
+    }else{
+      // 这里每次调用，都会触发get方法，实现一次更新，我们不希望如此频繁的更新。
+      queueWatcher(this); // 暂存
+      // this.get();
+    }
+  }
+```

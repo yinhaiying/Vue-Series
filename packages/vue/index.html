@@ -24,18 +24,17 @@
        computed:{
          // 会根据依赖的数据 重新执行
          info(){
-           console.log("执行：")
            return "姓名" + this.name +",年龄：" + this.age
          }
        }
      });
-    //  setTimeout(() => {
-    //     vm.info.name = "第一次watch修改值"
-    //  },3000)
     setTimeout(() => {
       console.log("info:",vm.info);
-      console.log("info:",vm.info);
     },1000)
+    setTimeout(() => {
+      vm.name = "海鹰"
+      console.log("info:",vm.info);
+    },3000)
     
 
   </script>

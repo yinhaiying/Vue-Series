@@ -43,18 +43,17 @@ function initComputed(vm) {
   for(let key in computed){
     const userDef = computed[key];
     const getter = typeof userDef === "function"? userDef:userDef.get;
+    watchers[key] = new Watcher(vm,getter,()=>{},{lazy:true})
     defineComputed(vm,key,userDef);
-    console.log("userDef:", userDef)
   }
-  
  }
 
  const sharedPropertyDefinition = {};
  function defineComputed(target,key,userDef){
    if(typeof userDef === "function"){
-     sharedPropertyDefinition.get = userDef;
+     sharedPropertyDefinition.get = createdComputedGetter(key);  // dirty来控制是否调用
    }else{
-     sharedPropertyDefinition.get = userDef.get;
+     sharedPropertyDefinition.get = createdComputedGetter(key);
      sharedPropertyDefinition.set = userDef.set;
    }
    Object.defineProperty(target, key, sharedPropertyDefinition);
@@ -76,6 +75,20 @@ function initWatch(vm) {
     }
   }
  }
+
+function createdComputedGetter(key,userDef){
+  return function(){  // 此方法才是我们执行的方法。每次取值会调用
+    // 这里的this是vm
+    const watcher = this._computedWatchers[key]; // 拿到对应属性的watcher。
+    if(watcher){
+      if(watcher.dirty){
+        watcher.evaluate();  // 对当前watcher求职
+      }
+      return watcher.value;
+    }
+  }
+}
+
 
  function createWatcher(vm,exprOrFn,handler,options){
    // 当传入的是一个对象时，options可以用来接收配置参数
