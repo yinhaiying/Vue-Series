@@ -624,10 +624,11 @@ DOM DIFF 的规则
 
 - 标签相同，复用标签，将两者的差异更新到原来的标签上即可。
 
-注意：所有的DOM Diff不是说两个虚拟DOM比较，最后得到一个比较后的差异虚拟DOM。
-而是根据虚拟DOM的差异，直接通过虚拟DOM身上的el(这是一个真实DOM)，直接根据他们的
-差异进行设置。比如，新的虚拟DOM没有子元素，那么直接操作el(即原来的标签)删除子元素即可。
-也就是说**比较的结果最终都需要通过el来进行操作**
+注意：所有的 DOM Diff 不是说两个虚拟 DOM 比较，最后得到一个比较后的差异虚拟 DOM。
+而是根据虚拟 DOM 的差异，直接通过虚拟 DOM 身上的 el(这是一个真实 DOM)，直接根据他们的
+差异进行设置。比如，新的虚拟 DOM 没有子元素，那么直接操作 el(即原来的标签)删除子元素即可。
+也就是说**比较的结果最终都需要通过 el 来进行操作**
+
 ### 属性比较
 
 - 属性比对：
@@ -677,69 +678,81 @@ function updateProperties(vnode, oldProps = {}) {
 2. 老的没有 children,新的有 children，保留新的 children 即可
 3. 老的和旧的都有 children diff 算法
 
-最复杂的就是老的和旧的都有children，这时候就需要考虑各种情况。如果直接暴力去比较，那么效率就很低下，需要设计一些算法。其实就是两个数组的比较，由于我们对数组的操作通常是在数组后面添加(push)，在数组前面添加，反转数组等，因此，我们优先考虑这些特殊情况。实现思路如下：
-1. 给旧的children定义一个头指针和一个尾指针
-2. 给新的children定义一个头指针和一个尾指针
-3. 从后往前比较，如果是添加元素，那么他们前面的vnode应该是相同的，只需要将最后一个vnode插入即可。
-![](https://ftp.bmp.ovh/imgs/2021/02/15ea776e78269f52.png)
+最复杂的就是老的和旧的都有 children，这时候就需要考虑各种情况。如果直接暴力去比较，那么效率就很低下，需要设计一些算法。其实就是两个数组的比较，由于我们对数组的操作通常是在数组后面添加(push)，在数组前面添加，反转数组等，因此，我们优先考虑这些特殊情况。实现思路如下：
+
+1. 给旧的 children 定义一个头指针和一个尾指针
+2. 给新的 children 定义一个头指针和一个尾指针
+3. 从后往前比较，如果是添加元素，那么他们前面的 vnode 应该是相同的，只需要将最后一个 vnode 插入即可。
+   ![](https://ftp.bmp.ovh/imgs/2021/02/15ea776e78269f52.png)
 4. 如果前面不相同，那么从后往前比较，如果是往前添加了结点，那么从后往前结点应该是相同的。只需要操作最前面添加的结点即可。
 5. 如果前面比较不相同，后面比较也不相同，那么考虑旧的头指针和新的尾指针是否相同，看是否是出现了翻转。如果相同，那么将旧的头指针移动到最后一个结点后面，然后指针往后移动要给为止，新的尾指针往前移动一个位置。
 6. 如果前面比较不相同，后面比较也不相同，旧的头指针和新的尾指针也不相同，那么考虑将新的头指针和旧的尾指针进行比较。看是否出现了翻转。如果相同，将旧的尾指针插入到旧的头指针前面，将尾指针往前移动一个位置，将头指针往后移动一个位置。
-这就是为什么我们不能使用index作为key？
+   这就是为什么我们不能使用 index 作为 key？
+
 ```js
 <li key = "0">js</li>                  <li key = "0">html</li>
 <li key = "1">css</li>  交换了一下顺序  <li key = "1">css</li>
 <li key = "2">html</li>                <li key = "2">js</li>
 ```
-我们可以看下，如果用户翻转了一下，比较时会发现key值都不相同了。那么会全都重新创建，而不是通过移动来实现优化。
-7. 暴力比较。如果无论是头头比较，头尾比较，尾头比较还是尾尾比较。都没有相同的，那么就只剩下暴力比较了。暴力比较的规则就是：将新结点的值与旧的所有结点比较，如果没有相同的直接插入到旧节点的第一个的前面，如果有相同的就复用，将旧结点移动到原来的第一个的前面,同时它的位置需要保留置为null即可。最后将老的没有遍历到的删除即可。
 
+我们可以看下，如果用户翻转了一下，比较时会发现 key 值都不相同了。那么会全都重新创建，而不是通过移动来实现优化。
 
+7. 暴力比较。如果无论是头头比较，头尾比较，尾头比较还是尾尾比较。都没有相同的，那么就只剩下暴力比较了。暴力比较的规则就是：将新结点的值与旧的所有结点比较，如果没有相同的直接插入到旧节点的第一个的前面，如果有相同的就复用，将旧结点移动到原来的第一个的前面,同时它的位置需要保留置为 null 即可。最后将老的没有遍历到的删除即可。
 
 ## Computed
-Vue的计算属性computed，只要一取computed中的某个值，他就会执行，因此，它的内部也使用了Object.defineProperty，内部有一个变量dirty控制这个computed中的函数是否要执行。同时，computed是依赖于它内部使用的值，也就是说它也是一个watcher。内部属性会收集这个watcher。
-1. 给computed每个属性加上Object.defineProperty。将get的属性绑定到vm身上，其中get方法就是我们在watch中定义的方法。
+
+Vue 的计算属性 computed，只要一取 computed 中的某个值，他就会执行，因此，它的内部也使用了 Object.defineProperty，内部有一个变量 dirty 控制这个 computed 中的函数是否要执行。同时，computed 是依赖于它内部使用的值，也就是说它也是一个 watcher。内部属性会收集这个 watcher。
+
+1. 给 computed 每个属性加上 Object.defineProperty。将 get 的属性绑定到 vm 身上，其中 get 方法就是我们在 watch 中定义的方法。
+
 ```js
- const sharedPropertyDefinition = {};
- function defineComputed(target,key,userDef){
-   if(typeof userDef === "function"){
-     sharedPropertyDefinition.get = userDef;
-   }else{
-     sharedPropertyDefinition.get = userDef.get;
-     sharedPropertyDefinition.set = userDef.set;
-   }
-   Object.defineProperty(target, key, sharedPropertyDefinition);
- }
+const sharedPropertyDefinition = {};
+function defineComputed(target, key, userDef) {
+  if (typeof userDef === "function") {
+    sharedPropertyDefinition.get = userDef;
+  } else {
+    sharedPropertyDefinition.get = userDef.get;
+    sharedPropertyDefinition.set = userDef.set;
+  }
+  Object.defineProperty(target, key, sharedPropertyDefinition);
+}
 ```
-但是，这种方式实现是没有缓存的。每次通过vm.info调用一次就执行一次。我们都知道Vue中computed相比于watch的一个重要的区别就是computed是有缓存的。解决办法就是定义一个高阶函数，使用一个dirty参数来判断是否需要执行用户定义的computed方法。
+
+但是，这种方式实现是没有缓存的。每次通过 vm.info 调用一次就执行一次。我们都知道 Vue 中 computed 相比于 watch 的一个重要的区别就是 computed 是有缓存的。解决办法就是定义一个高阶函数，使用一个 dirty 参数来判断是否需要执行用户定义的 computed 方法。
+
 ```js
- const sharedPropertyDefinition = {};
- function defineComputed(target,key,userDef){
-   if(typeof userDef === "function"){
-     sharedPropertyDefinition.get = createdComputedGetter(key);  
-   }else{
-     sharedPropertyDefinition.get = createdComputedGetter(key);
-     sharedPropertyDefinition.set = userDef.set;
-   }
-   Object.defineProperty(target, key, sharedPropertyDefinition);
- }
+const sharedPropertyDefinition = {};
+function defineComputed(target, key, userDef) {
+  if (typeof userDef === "function") {
+    sharedPropertyDefinition.get = createdComputedGetter(key);
+  } else {
+    sharedPropertyDefinition.get = createdComputedGetter(key);
+    sharedPropertyDefinition.set = userDef.set;
+  }
+  Object.defineProperty(target, key, sharedPropertyDefinition);
+}
 ```
-如上所示，我们不再直接就取用户定义的computed方法，而是在外面封装一层，定义成createdComputedGetter，这个方法的实现如下：
+
+如上所示，我们不再直接就取用户定义的 computed 方法，而是在外面封装一层，定义成 createdComputedGetter，这个方法的实现如下：
+
 ```js
-function createdComputedGetter(key){
-  return function(){  // 此方法才是我们执行的方法。每次取值会调用
+function createdComputedGetter(key) {
+  return function() {
+    // 此方法才是我们执行的方法。每次取值会调用
     // 这里的this是vm
     const watcher = this._computedWatchers[key]; // 拿到对应属性的watcher。
-    if(watcher){
-      if(watcher.dirty){   
-        watcher.evaluate();  // 对当前watcher求职
+    if (watcher) {
+      if (watcher.dirty) {
+        watcher.evaluate(); // 对当前watcher求职
       }
       return watcher.value;
     }
-  }
+  };
 }
 ```
-我们可以看到，这个方法就是返回一个方法，这是每次都会执行的，但是用户定义的方法是否执行，需要通过dirty参数来控制，也就是说我们只需要在watcher中定义一个dirty属性来控制它的执行就行。在取值时第一次dirty为true，取值后变为fasle，只要依赖没更新就一直不会执行，而是调用原来的值，也就是缓存的值。只有在set的时候，也就是它的依赖更新时将dirty变为true。这样的话就实现了缓存。
+
+我们可以看到，这个方法就是返回一个方法，这是每次都会执行的，但是用户定义的方法是否执行，需要通过 dirty 参数来控制，也就是说我们只需要在 watcher 中定义一个 dirty 属性来控制它的执行就行。在取值时第一次 dirty 为 true，取值后变为 fasle，只要依赖没更新就一直不会执行，而是调用原来的值，也就是缓存的值。只有在 set 的时候，也就是它的依赖更新时将 dirty 变为 true。这样的话就实现了缓存。
+
 ```js
   update() {
     if(this.lazy){  // lazy为true，说明是计算属性，计算属性更新，只需要把dirty变成true即可。
@@ -750,4 +763,78 @@ function createdComputedGetter(key){
       // this.get();
     }
   }
+```
+
+## compontents
+
+在 vue 的开发过程中，组件化是非常重要的拆分，一方面，每个组件都有一个独立的 watcher，这样的话数据更新时，只更新组件，而不会大批量的更新，从而提升性能。因此，我们需要重点了解 Vue 创建组件的方法。Vue.component()。
+组件的渲染流程：
+
+1. 调用 Vue.component
+2. 内部用的是 Vue.extend。功能就是生成一个字类继承父类
+3. 创建子类实例时，会调用父类的\_init 方法。也就是整个 Vue 的初始化方法。再去\$mount 即可。
+4. 组件的初始话就是 new 这个组件的构造函数。比如 new Vue()就是调用 Vue 的构造函数来初始化。
+   组件的创建，实际上就是创建一个 Vue 的子类，这个子类通过 Vue.extend 会继承父类身上的属性和方法。
+   然后通过\$mount 挂载即可。
+
+```js
+export function initExtend(Vue) {
+  // 核心就是创建一个字类去继承父类
+  Vue.extend = function(extendOptions) {
+    const Super = this;
+    const Sub = function VueComponent(options) {
+      // 父类的初始化。 这里的this是Super
+      this._init(options);
+    };
+    // 子类继承父类原型上的方法
+    Sub.prototype = Object.create(Super.prototype);
+    Sub.prototype.constructor = Sub;
+    // 子类拥有跟父类同样的属性。因为它可能也作为另外的子组件的父类
+    Sub.options = mergeOptions(Super.options, extendOptions);
+
+    return Sub;
+  };
+}
+```
+
+### 子组件的查找顺序
+
+我们可以通过 Vue.component 定义子组件，也可以直接通过 components 选项定义组件，那么如果两种方法定义了同一个组件，因该如何查找了。Vue 规定了组件的查找顺序是先查找自身的，自身没有的再去查找原型链上的。
+
+```js
+    Vue.component("aa",{
+      template:"<div>hello</div>"
+    })
+    Vue.component("cc",{
+      template:"<div>hello</div>"
+    })
+     const vm = new Vue({
+       el:"#app",
+       data(){
+         return {
+           name:"hai",
+           age:24
+         }
+       },
+       components:{
+         "aa":{
+           template:"<div>world</div>"
+         }
+       },
+     }
+```
+
+如上面代码所示：同时定义了 aa 组件，使用时优先使用 options 中的 compoennts。这就是我们合并组件的策略。
+
+```js
+strats.components = function(parentVal, childVal) {
+  const res = Object.create(parentVal);
+  // 如果儿子有值，那么就先从儿子身上找。
+  if (childVal) {
+    for (let key in childVal) {
+      res[key] = childVal[key];
+    }
+  }
+  return res;
+};
 ```

@@ -7,6 +7,7 @@ import { mergeOptions } from "./utils.js";
 export const initMixin = function (Vue) {
   Vue.prototype._init = function (options) {
     const vm = this;
+    console.log("init:", vm.constructor.options, options)
     // 将选项挂载到实例身上
     // vm.$options = mergeOptions(Vue.options, options);
     // 有可能是子组件初始化，因此不一定是Vue.options。只是需要拿到对应的选项即可。

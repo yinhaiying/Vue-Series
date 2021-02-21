@@ -83,6 +83,16 @@ strats.computed = function () {
 
 }
 
+strats.components = function (parentVal, childVal) {
+  const res = Object.create(parentVal);
+  // 如果儿子有值，那么就先从儿子身上找。
+  if (childVal) {
+    for (let key in childVal) {
+      res[key] = childVal[key]
+    }
+  };
+  return res;
+}
 
 function mergeHook(parentVal, childVal) {
   // 合并生命周期的方法
@@ -123,7 +133,12 @@ export function mergeOptions(parent, child) {
     if (strats[key]) {
       options[key] = strats[key](parent[key], child[key]);
     } else {
-      options[key] = child[key]
+      if (child[key]) {
+        options[key] = child[key]
+      } else {
+        options[key] = parent[key]
+      }
+
     }
   }
   return options;
