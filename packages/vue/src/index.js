@@ -1,3 +1,4 @@
+import { initGlobalApi } from "./global-api/index.js";
 import { initMixin } from "./init.js"
 import { lifecycleMixin } from "./lifecycle.js";
 import { stateMixin } from "./state.js";
@@ -16,7 +17,7 @@ stateMixin(Vue);     // nexttick
 
 
 
-
+initGlobalApi(Vue);
 
 
 

@@ -10,10 +10,19 @@
 <body>
   <div id = "app" style = "color:red">
     hello{{name}}
-    {{info}}
     <span id= "my">world</span>
   </div>
   <script>
+    Vue.mixin({
+      created:function a(){
+        // console.log("mixin1的created")
+      }
+    })
+    Vue.mixin({
+      created:function b(){
+        // console.log("mixin2的created")
+      }
+    })
      const vm = new Vue({
        el:"#app",
        data(){
@@ -22,22 +31,10 @@
            age:24
          }
        },
-       computed:{
-         // 会根据依赖的数据 重新执行
-         info(){
-           return "姓名" + this.name +",年龄：" + this.age
-         }
+       created(){
+        //  console.log("my-created")
        }
      });
-    // setTimeout(() => {
-    //   console.log("info:",vm.info);
-    // },1000)
-    setTimeout(() => {
-      vm.name = "海鹰"
-      console.log("info:",vm.info);
-    },3000)
-    // vm.name = "海鹰"
-    
 
   </script>
 </body>

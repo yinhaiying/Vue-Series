@@ -1,17 +1,20 @@
 import { initState } from "./state.js"
 import { compileToFunctions } from "./compiler/index"
-import { mountComponent } from "./lifecycle.js";
+import { callHook, mountComponent } from "./lifecycle.js";
+import { mergeOptions } from "./utils.js";
 
 
 export const initMixin = function (Vue) {
   Vue.prototype._init = function (options) {
     const vm = this;
     // 将选项挂载到实例身上
-    vm.$options = options;
-
+    // vm.$options = mergeOptions(Vue.options, options);
+    // 有可能是子组件初始化，因此不一定是Vue.options。只是需要拿到对应的选项即可。
+    vm.$options = mergeOptions(vm.constructor.options, options);
+    callHook(vm, "beforeCreate")
     // 初始化state
     initState(vm);
-
+    callHook(vm, "created")
     // 渲染模板
     if (vm.$options.el) {
       vm.$mount(vm.$options.el);
