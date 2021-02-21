@@ -5,9 +5,7 @@ import { isReservedTag } from "../utils"
 export function renderMixin(Vue) {
   // 创建元素 _c:create
   Vue.prototype._c = function () {
-    const vm = this;
-    console.log("_c:", this)
-    return createElement.call(vm, ...arguments)
+    return createElement(this, ...arguments)
   }
   // 创建文本元素 _v
   Vue.prototype._v = function (text) {
@@ -29,21 +27,17 @@ export function renderMixin(Vue) {
 
 // _c("div",{},child1,child2,child3)
 //创建虚拟dom
-function createElement(tag, data = {}, key, ...children) {
-  const vm = this;
-  console.log("this:", vm)
+function createElement(vm, tag, data = {}, key, ...children) {
   // 这里的tag可能是组件，<aa></aa>，如果是组件在生成虚拟DOM时，
   // 需要把组件的构造函数传入
   if (isReservedTag(tag)) {
     return vNode(tag, data, data.key, children)
   } else {
     // 通过vm找到构造函数
-    console.log("vm:", vm)
-    let Ctor = this.$options.components[tag];
+    let Ctor = vm.$options.components[tag];
     // 创建组件的虚拟结点
     return createComponentVnode(vm, tag, data, key, children, Ctor)
   }
-
 }
 
 // 创建虚拟文本
@@ -53,6 +47,7 @@ function createTextVNode(text) {
 
 // 常见组件的虚拟结点  children就是组件的插槽
 function createComponentVnode(vm, tag, data, key, children, Ctor) {
+  console.log("vm:", vm)
   const baseCtor = vm.$options._base;
   if (typeof Ctor === "object") {
     // 如果是一个对象，也就是用户写在选项中，那么先通过extend生成构造函数。
