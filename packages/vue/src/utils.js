@@ -144,3 +144,20 @@ export function mergeOptions(parent, child) {
   return options;
 }
 
+
+
+// 是否是一个标签
+
+function makeMap(str) {
+  const mapping = {};
+  const list = str.split(",");
+  list.forEach((item) => {
+    mapping[item] = true;
+  });
+  return (key) => {
+    return mapping[key];
+  }
+}
+export const isReservedTag = makeMap(
+  'a,div,img,image,text,span,p,button,input,textarea,ul,li,ol,section,header,footer,main'
+)

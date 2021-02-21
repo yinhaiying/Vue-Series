@@ -776,6 +776,7 @@ function createdComputedGetter(key) {
 4. 组件的初始话就是 new 这个组件的构造函数。比如 new Vue()就是调用 Vue 的构造函数来初始化。
    组件的创建，实际上就是创建一个 Vue 的子类，这个子类通过 Vue.extend 会继承父类身上的属性和方法。
    然后通过\$mount 挂载即可。
+5. 创建组件的虚拟结点，需要区分是原生标签还是自定义的组件
 
 ```js
 export function initExtend(Vue) {
@@ -838,3 +839,53 @@ strats.components = function(parentVal, childVal) {
   return res;
 };
 ```
+
+### 创建组件的虚拟结点
+
+目前的话，我们的组件渲染时会被直接当成原生标签渲染。这需要我们在创建虚拟 DOM 时做处理。
+
+```js
+//创建虚拟dom
+function createElement(vm, tag, data = {}, ...children) {
+  // 这里的tag可能是组件，<aa></aa>，如果是组件在生成虚拟DOM时，需要把组件的构造函数传入
+  // 区分是原生标签还是自定义组件
+  if (isReservedTag(tag)) {
+    return vNode(tag, data, data.key, children);
+  } else {
+    // 通过vm找到构造函数
+    let Ctor = vm.$options.components[tag];
+    // 创建组件的虚拟结点
+    return createComponentVnode();
+  }
+}
+```
+
+createComponentVnode 用于生成组件的虚拟 DOM。
+
+```js
+function createComponentVnode(vm, tag, data, key, children, Ctor) {
+  const baseCtor = vm.$options._base;
+  if (typeof Ctor === "object") {
+    // 如果是一个对象，也就是用户写在选项中，那么先通过extend生成构造函数。
+    Ctor = base.extend(Ctor);
+  }
+  //给组件增加生命周期，放到属性身上。
+  data.hook = {
+    init() {},
+  };
+  return vNode(
+    `vue-component-${Ctor.cid}-${tag}`,
+    data,
+    key,
+    undefined,
+    undefined,
+    { Ctor, children }
+  );
+}
+```
+
+组件的虚拟 DOM 与原生的相比，需要处理两个地方：
+
+1. 组件名称
+2. 组件的属性中多了一个 hook 的属性，并且包含了组件的初始化方法
+3. 组件的虚拟 DOM 需要传入构造函数，插槽等信息。

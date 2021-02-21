@@ -12,7 +12,7 @@ import { mergeOptions } from "../utils";
 
 
 export function initExtend(Vue) {
-
+  let cid = 0;
   // 核心就是创建一个字类去继承父类
   Vue.extend = function (extendOptions) {
     const Super = this;
@@ -20,6 +20,7 @@ export function initExtend(Vue) {
       // 父类的初始化。 这里的this是Super
       this._init(options)
     };
+    Sub.cid = cid++;
     // 子类继承父类原型上的方法
     Sub.prototype = Object.create(Super.prototype);
     Sub.prototype.constructor = Sub;
