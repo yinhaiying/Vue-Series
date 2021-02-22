@@ -1,6 +1,8 @@
 import Vue from "vue";
 import Vuex from "@/vuex/index.js";
-
+// import Vuex from "vuex";
+import a from "./a.js";
+import b from "./b.js";
 
 
 Vue.use(Vuex);
@@ -26,6 +28,10 @@ const store = new Vuex.Store({
           },1000)
         //   console.log(dispatch)
       }
+    },
+    modules:{
+      a,
+      b
     }
 });
 
