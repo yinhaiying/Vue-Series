@@ -107,3 +107,19 @@ commit = (type,payload) => {   // 保证this指向当前实例
     this.mutations[type](payload)
 }
 ```
+
+### actions
+异步修改方法，需要通过调用dispatch来实现。就也就是在Store实例上实现一个dispatch方法。
+```js
+this.actions = {};
+forEachValue(options.actions,(fn,key) => {
+    console.log("key",key)
+    this.actions[key] = (payload) => fn(this,payload)
+})
+```
+dispatch方法的实现：
+```js
+dispatch = (type,payload) => {
+    this.actions[type](payload)
+}
+```

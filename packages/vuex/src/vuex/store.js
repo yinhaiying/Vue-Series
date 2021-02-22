@@ -31,6 +31,13 @@ export class Store {
         forEachValue(options.mutations,(fn,key) => {
             this.mutations[key] = (payload) => fn(this.state,payload)
         })
+
+        // actions
+        this.actions = {};
+        forEachValue(options.actions,(fn,key) => {
+            console.log("key",key)
+            this.actions[key] = (payload) => fn(this,payload)
+        })
     }
     get state() {
         return this._vm._data.$$state
@@ -40,9 +47,11 @@ export class Store {
       this.mutations[type](payload)
     }
 
-        // forEachValue(options.actions,(fn,key) => {
-        //   this.actions[key] = () => {}
-        // })
+    dispatch = (type,payload) => {
+      this.actions[type](payload)
+    }
+
+
 }
 
 
