@@ -123,3 +123,58 @@ dispatch = (type,payload) => {
     this.actions[type](payload)
 }
 ```
+
+### modules的实现
+由于vuex中模块可以包含模块，因此我们需要将数据处理一下，处理成树状的结构。这样的话方便我们表示这中包含关系。比如：
+```js
+ {
+    modules:{
+        a:{
+            c
+        },
+        b
+    }
+ }
+```
+比如一个模块中包含a,b两个模块，模块a中又包含c这个模块，那么我们要将其表示成：
+```js
+  this.root = {
+      _raw:"根模块",
+      _children:{
+        a:{
+            _raw:"a模块",
+            _children:{
+                c:{
+                    _raw:"c模块",
+                    state:"c的状态"
+                }
+            },
+            state:"a的状态"
+        },
+        b:{
+            _raw:"b模块",
+            _children:{},
+            state:"b的状态"
+        },
+      },
+      state:"根模块自己的状态"
+  }
+```
+也就是通过递归实现这种树状结构。然后根据树状结构分别设置每个模块的状态。
+```js
+  register(path,rootModule){
+    let newModule = new Module(rootModule)
+    if(path.length === 0){
+        this.root  = newModule;  // root就是整个store树
+    }else{
+        let parent = path.slice(0,-1).reduce((memo,current)=>{
+            return memo.getChild(current);
+        },this.root);
+        parent.addChild(path[path.length - 1], newModule)
+    }
+    if (rootModule.modules) {
+        forEachValue(rootModule.modules,(module,moduleName) => {
+          this.register(path.concat(moduleName),module);
+        })
+    }
+```

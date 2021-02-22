@@ -6,7 +6,11 @@ export default {
     state:{
         age:24
     },
-    getters:{},
+    getters:{
+        myAge(state, payload) {
+            return state.age += payload;
+        }
+    },
     mutations:{
         changeAge(state,payload){
           state.age += payload;
