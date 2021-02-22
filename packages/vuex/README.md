@@ -1,24 +1,5 @@
-# vuex
+# Vuex的实现细节
 
-## Project setup
-```
-yarn install
-```
-
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
-
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+1. `Vuex.use(Vuex)`也就是说`Vuex`是一个对象，对象中有一个install方法。
+2. `new Vuex.Store()`，Vuex中有一个Store类。
+3. 混入到组件中，增添store属性。

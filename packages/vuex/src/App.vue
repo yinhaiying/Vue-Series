@@ -7,3 +7,11 @@
   </div>
 </template>
 
+<script>
+export default {
+  mounted(){
+    console.log("$store:",this.$store)
+  }
+}
+</script>
+

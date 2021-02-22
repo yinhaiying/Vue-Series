@@ -1,5 +1,5 @@
 import Vue from "vue";
-import Vuex from "vuex";
+import Vuex from "@/vuex/index.js";
 
 
 
@@ -21,10 +21,11 @@ const store = new Vuex.Store({
       }
     },
     actions:{     // 异步修改完成后将信息提交给mutations
-      changeName({commit,dispatch},payload){
+      changeName({commit},payload){
           setTimeout(() => {
             commit("setName",payload)
           },1000)
+        //   console.log(dispatch)
       }
     }
 });
