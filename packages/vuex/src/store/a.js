@@ -12,7 +12,11 @@ export default {
           state.age += payload;
         }
     },
-    actions:{},
+    actions:{
+        changeAge({commit},payload){
+            commit("changeAge",payload);
+        }
+    },
     modules:{
         c
     }

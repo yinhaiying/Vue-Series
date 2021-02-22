@@ -1,18 +1,19 @@
 
 
 import {forEachValue} from "../../utils"
-
+import Module from "./module.js"
 class ModuleCollection{
   constructor(options){
       this.register([],options);
   }
 
   register(path,rootModule){
-    let newModule = {
-        _raw:rootModule,   // 原来的模块
-        _children:{},      // 模块的子模块
-        // state:rootModule.state  // 当前模块的状态
-    }
+    // let newModule = {
+    //     _raw:rootModule,   // 原来的模块
+    //     _children:{},      // 模块的子模块
+    //     state:rootModule.state  // 当前模块的状态
+    // }
+    let newModule = new Module(rootModule)
     if(path.length === 0){
         this.root  = newModule;  // root就是整个store树
     }else{
@@ -21,14 +22,12 @@ class ModuleCollection{
         // [b]
         // [a,c]
         let parent = path.slice(0,-1).reduce((memo,current)=>{
-            return memo._children[current];
+            return memo.getChild(current);
         },this.root);
-        console.log("parent:",parent)
-        parent._children[path[path.length - 1]] = newModule;
+        parent.addChild(path[path.length - 1], newModule)
     }
     if (rootModule.modules) {
         forEachValue(rootModule.modules,(module,moduleName) => {
-            // [a]
           this.register(path.concat(moduleName),module);
         })
     }
