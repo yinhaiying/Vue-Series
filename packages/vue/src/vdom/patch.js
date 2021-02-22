@@ -1,16 +1,41 @@
+// 组件生成结点
+function createComponent(vnode) {
+  // 调用vnode.hook.init方法
+  let i = vnode.data;
+  if ((i = i.hook) && (i = i.init)) {
+    i(vnode);
+  }
+  if (vnode.componentInstance) {
+    return true;
+  }
+}
+
+
+
 
 export function patch(oldVnode, vnode) {
+  // 如果oldVnode为空，说明是组件
+  if (!oldVnode) {
+    return createElm(vnode)
+  }
+  // 如果是真实结点
   if (oldVnode.nodeType === 1) {
-    // 如果是真实结点
+
+
+
+    // 原生标签
     let el = createElm(vnode);
     let parentElm = oldVnode.parentNode;   // 生成真实的DOM
     parentElm.insertBefore(el, oldVnode.nextSibling)   // 将真实DOM插入到老的DOM后面
     parentElm.removeChild(oldVnode);   // 删除老的DOM结点
     return el;
+
+
+
   } else {
     // 如果是虚拟DOM，
     if (oldVnode.tag !== vnode.tag) {
-      return oldVnode.el.parentNode.replaceChild(newDOM, oldVnode.el)
+      return oldVnode.el.parentNode.replaceChild(vnode.el, oldVnode.el)
     }
     //如果是undefined，说明是文本结点
     if (!oldVnode.tag) {
@@ -39,15 +64,18 @@ export function createElm(vnode) {
     text
   } = vnode;
   if (typeof tag === "string") {
+    // 如果是组件
+    if (createComponent(vnode)) {   // 组件渲染后的结果，放到当前组件的实例上 vm.$el
+      return vnode.componentInstance.$el;
+    }
     // 创建元素，放到vnode.el上作为父元素记录下来
     vnode.el = document.createElement(vnode.tag);
     // 更新属性
     updateProperties(vnode);
-    if (children) {
-      children.forEach((child) => {
-        vnode.el.appendChild(createElm(child))
-      });
-    }
+    children.forEach((child) => {
+      const el = createElm(child);
+      vnode.el.appendChild(el)
+    });
   } else {
     vnode.el = document.createTextNode(text);
   }

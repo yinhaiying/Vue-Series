@@ -7,7 +7,6 @@ import { mergeOptions } from "./utils.js";
 export const initMixin = function (Vue) {
   Vue.prototype._init = function (options) {
     const vm = this;
-    console.log("init:", vm.constructor.options, options)
     // 将选项挂载到实例身上
     // vm.$options = mergeOptions(Vue.options, options);
     // 有可能是子组件初始化，因此不一定是Vue.options。只是需要拿到对应的选项即可。
@@ -33,9 +32,9 @@ export const initMixin = function (Vue) {
       let template = options.template;
       if (!template && el) {
         template = el.outerHTML;
-        const render = compileToFunctions(template);
-        options.render = render;
       }
+      const render = compileToFunctions(template);
+      options.render = render;
       // 有template
     }
     // 有render方法之后，需要进行挂载
