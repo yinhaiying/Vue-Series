@@ -50,8 +50,8 @@ export const install = (_Vue) => {
 // path 所有路径
 // module 格式化后的模块树
 const installModule = (store, rootState, path, module) => {
-  let nameSpaced = store._modules.getNameSpaced(path);
-  console.log("nameSpaced:", nameSpaced)
+  let namespaced = store._modules.getnamespaced(path);
+  console.log("namespaced:", namespaced)
   // 将所有的子模块的状态安装到父模块
   if (path.length > 0) {
     // 入股哦这个对象本身不是响应式的，直接给obj
@@ -65,22 +65,22 @@ const installModule = (store, rootState, path, module) => {
   }
 
   module.forEachMutation((mutation, key) => {
-    store._mutations[nameSpaced + key] = store._mutations[nameSpaced + key] || [];
+    store._mutations[namespaced + key] = store._mutations[namespaced + key] || [];
 
     // 多个模块都具有相同的mutation时，需要用数组处理
-    store._mutations[nameSpaced + key].push((payload) => {
+    store._mutations[namespaced + key].push((payload) => {
       mutation.call(store, module.state, payload);
     })
   });
   module.forEachAction((action, key) => {
-    store._actions[nameSpaced + key] = store._actions[nameSpaced + key] || [];
-    store._actions[nameSpaced + key].push((payload) => {
+    store._actions[namespaced + key] = store._actions[namespaced + key] || [];
+    store._actions[namespaced + key].push((payload) => {
       action.call(store, store, payload);
     })
   });
   module.forEachGetter((getter, key) => {
     // 不同模块的相同getter是会被覆盖的。
-    store._wrappedGetters[nameSpaced + key] = function () {
+    store._wrappedGetters[namespaced + key] = function () {
       return getter(module, module.state);
     }
   });

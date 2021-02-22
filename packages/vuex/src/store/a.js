@@ -2,7 +2,7 @@
 
 import c from "./c"
 export default {
-  nameSpaced: true,
+  namespaced: true,
   state: {
     age: 24
   },

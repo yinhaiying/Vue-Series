@@ -2,10 +2,8 @@
   <div id="app">
     <!-- {{$store.state.name}} -->
     <!-- {{JSON.stringify(this.$store)}} -->
-    我的姓名是：{{ $store.state.name }}<br />
-    <button @click="$store.state.name = 'hello'">修改</button>
-    <button @click="$store.commit('setName', '爱因斯坦')">
-      mutation修改姓名</button
+    我的姓名是：{{ $store.state.age }}<br />
+    <button @click="$store.commit('setAge', 1)">mutation修改年龄</button
     ><br /><br />
     <button @click="$store.dispatch('changeName', '还应斯坦')">
       异步修改姓名</button

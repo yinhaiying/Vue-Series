@@ -4,8 +4,8 @@ import {
 } from "../../utils"
 
 class Module {
-  get nameSpaced() {
-    return !!this._raw.nameSpaced
+  get namespaced() {
+    return !!this._raw.namespaced
   }
   constructor(rootModule) {
     this._raw = rootModule;

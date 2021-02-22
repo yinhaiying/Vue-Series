@@ -6,11 +6,11 @@ class ModuleCollection {
   constructor(options) {
     this.register([], options);
   }
-  getNameSpaced(path) {
+  getnamespaced(path) {
     let root = this.root;
     return path.reduce((str, key) => {
       root = root.getChild(key);
-      return str + (root.nameSpaced ? key + "/" : "")
+      return str + (root.namespaced ? key + "/" : "")
     }, "")
   }
 
