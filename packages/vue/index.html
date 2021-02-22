@@ -11,7 +11,7 @@
   <div id = "app" style = "color:red">
     hello{{name}}
     <span id= "my">world</span>
-    <aa></aa>
+    <bb></bb>
   </div>
   <script>
     Vue.mixin({
@@ -20,7 +20,27 @@
       }
     })
     Vue.component("bb",{
-      template:"<div>hello</div>"
+      template:"<div>这是一个子组件{{a}}</div>",
+      data:function(){
+        return {
+          a:1
+        }
+      },
+       beforeCreate() {
+         console.log("子组件 beforeCreate")
+       },
+       created(){
+         console.log("子组件 created")
+       },
+       beforeMount() {
+         console.log("子组件 beforeMount")
+       },
+       mounted() {
+         setTimeout(()=>{
+           this.a = 100;
+         },1000)
+         console.log("子组件 mounted")
+       },
     })
     Vue.component("cc",{
       template:"<div>hello</div>"
@@ -35,12 +55,21 @@
        },
        components:{
          "aa":{
-           template:"<div>world</div>"
+           template:"<div>这是一个子组件啊</div>"
          }
        },
+       beforeCreate() {
+         console.log("beforeCreate")
+       },
        created(){
-        //  console.log("my-created")
-       }
+         console.log("created")
+       },
+       beforeMount() {
+         console.log("beforeMount")
+       },
+       mounted() {
+         console.log("mounted")
+       },
      });
      console.log(vm)
   </script>

@@ -20,7 +20,7 @@ export function lifecycleMixin(Vue) {
 
 export function mountComponent(vm, el) {
   // 先调用render方法创建虚拟节点，再将虚拟结点渲染到页面上
-  callHook(vm, "beforeMounted");
+  callHook(vm, "beforeMount");
   let updateComponent = () => {
     vm._update(vm._render())
   }

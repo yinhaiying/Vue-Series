@@ -74,10 +74,10 @@ export function nextTick(cb) {
 
 const strats = {};
 // 合并data的方法
-strats.data = function (parentVal, childVal) {
-  // TODO: 合并data
-  return childVal
-}
+// strats.data = function (parentVal, childVal) {
+//   // TODO: 合并data
+//   return childVal
+// }
 // 合并computed的方法
 strats.computed = function () {
 
@@ -111,7 +111,7 @@ function mergeHook(parentVal, childVal) {
 
 
 export const LIFECYCLE_HOOKS = [
-  "beforeCreate", "created", "beforeMount", "Mounted",
+  "beforeCreate", "created", "beforeMount", "mounted",
   "beforeUpdate", "updated", "beforeDestroy", "destroyed"
 ];
 LIFECYCLE_HOOKS.forEach((hook) => {

@@ -889,3 +889,18 @@ function createComponentVnode(vm, tag, data, key, children, Ctor) {
 1. 组件名称
 2. 组件的属性中多了一个 hook 的属性，并且包含了组件的初始化方法
 3. 组件的虚拟 DOM 需要传入构造函数，插槽等信息。
+
+### 组件的生命周期：
+
+```
+index.html:54 parent beforeCreate
+index.html:57 parent created
+index.html:60 parent beforeMount
+index.html:25 子组件 beforeCreate
+index.html:28 子组件 created
+index.html:31 子组件 beforeMount
+index.html:34 子组件 mounted
+parent mounted
+```
+
+我们可以看下执行的顺序是：父组件 beforeCreate,created,beforeMounted。然后父组件需要进行挂载了，这时候会调用 render 方法，render 方法中必须执行子组件的内容，这时候就会触发子组件的 beforeCreated,created,beforeMount,mounted。只有子组件挂载完毕(append)。父组件才能进行 render,然后挂载。
