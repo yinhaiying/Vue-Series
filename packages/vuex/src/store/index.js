@@ -11,10 +11,8 @@ const store = new Vuex.Store({
     },
     getters:{   // 计算属性
         myName(state){
-          console.log("getter:")
             return  state.name + "yingsitan"; 
         }
-
     },
     mutations:{   // method同步地更改
       setName(state,payload){

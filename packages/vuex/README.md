@@ -90,3 +90,20 @@ getters是具有缓存的computed，实际上就是对getters中的值{key:fn}�
             computed
         });
 ```
+
+### mutations
+mutations的实现，实际上就是通过commit方法，调用用户在mutaions中定义的方法。
+先收集所有的mutataions方法。
+```js
+this.mutations = {};
+forEachValue(options.mutations,(fn,key) => {
+    this.mutations[key] = (payload) => fn(this.state,payload)
+})
+```
+然后通过commit来执行这个方法
+```js
+commit = (type,payload) => {   // 保证this指向当前实例
+    // 调用commit，其实就是去this.mutations中找
+    this.mutations[type](payload)
+}
+```
