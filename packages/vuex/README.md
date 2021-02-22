@@ -58,3 +58,35 @@ export class Store {
     }
 }
 ```
+
+### getters
+getters是具有缓存的computed，实际上就是对getters中的值{key:fn}，通过Object.defineProperty进行拦截，观察key是否被获取，如果获取执行对应的函数即可。
+```js
+    this.getters = {};
+    forEachValue(options.getters,(fn,key) =>{
+        Object.defineProperty(this.getters, key, {
+            get: () => fn(this.state)   // 取值时，执行对应的函数即可。
+        })
+    })
+```
+但是，上面的这种方法是没有缓存的，我们知道在Vue中使用了dirty属性来进行缓存。那么我们是否还需要自己定义一个`dirty`来进行缓存了，事实上跟`state`一样我们可以使用Vue的computed来帮助我们能实现。我们将所有的`getters`都赋值到`computed`上，取值时从实例中去取。如下所示：
+```js
+      const computed ={}
+      // 处理getters
+      this.getters = {};
+      forEachValue(options.getters,(fn,key) =>{
+          // 将用户的getters定义在vue的computed身上
+        computed[key] = () => {
+            return fn(this.state);
+        }
+        Object.defineProperty(this.getters, key, {
+            get: () => this._vm[key]  // 取值时直接通过实例身上进行即可。
+        })
+      });
+        this._vm = new Vue({
+            data: { // 属性如果是通过$开头的默认不会将属性挂载到vm上
+                $$state: state // vue中的所有state都会将数据进行劫持
+            },
+            computed
+        });
+```
