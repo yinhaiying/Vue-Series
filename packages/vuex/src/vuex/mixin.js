@@ -9,7 +9,6 @@ export default function applyMixin(Vue){
 // vuexInit用于将store注入到所有子组件中，增加一个$store属性。
 function vuexInit(){
     const options = this.$options;
-    console.log("options:", this.$options)
     // 有store属性的表示是根实例
     if (options.store) {
         // 根实例增加$store属性。
