@@ -1,35 +1,42 @@
 
 
-import {forEachValue} from "../../utils"
+import { forEachValue } from "../../utils"
 import Module from "./module.js"
-class ModuleCollection{
-  constructor(options){
-      this.register([],options);
+class ModuleCollection {
+  constructor(options) {
+    this.register([], options);
+  }
+  getNameSpaced(path) {
+    let root = this.root;
+    return path.reduce((str, key) => {
+      root = root.getChild(key);
+      return str + (root.nameSpaced ? key + "/" : "")
+    }, "")
   }
 
-  register(path,rootModule){
+  register(path, rootModule) {
     // let newModule = {
     //     _raw:rootModule,   // 原来的模块
     //     _children:{},      // 模块的子模块
     //     state:rootModule.state  // 当前模块的状态
     // }
     let newModule = new Module(rootModule)
-    if(path.length === 0){
-        this.root  = newModule;  // root就是整个store树
-    }else{
-        // []
-        // [a]
-        // [b]
-        // [a,c]
-        let parent = path.slice(0,-1).reduce((memo,current)=>{
-            return memo.getChild(current);
-        },this.root);
-        parent.addChild(path[path.length - 1], newModule)
+    if (path.length === 0) {
+      this.root = newModule;  // root就是整个store树
+    } else {
+      // []
+      // [a]
+      // [b]
+      // [a,c]
+      let parent = path.slice(0, -1).reduce((memo, current) => {
+        return memo.getChild(current);
+      }, this.root);
+      parent.addChild(path[path.length - 1], newModule)
     }
     if (rootModule.modules) {
-        forEachValue(rootModule.modules,(module,moduleName) => {
-          this.register(path.concat(moduleName),module);
-        })
+      forEachValue(rootModule.modules, (module, moduleName) => {
+        this.register(path.concat(moduleName), module);
+      })
     }
   }
 }
@@ -38,7 +45,7 @@ class ModuleCollection{
 export default ModuleCollection;
 
 
-/* 
+/*
   this.root = {
       _raw:"根模块",
       _children:{
