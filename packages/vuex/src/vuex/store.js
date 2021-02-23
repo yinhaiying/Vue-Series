@@ -31,7 +31,6 @@ export class Store {
     this._subscribes.push(fn)
   }
   replaceState(state) {
-    // TODO:这里拿到的不是最新的state
     this._vm._data.$$state = state;
   }
   commit = (type, payload) => {
@@ -57,7 +56,6 @@ function getState(store, path) {
   let result = path.reduce((newState, current) => {
     return newState[current]
   }, store.state);
-  console.log("result:", result)
   return result;
 }
 
@@ -104,10 +102,9 @@ const installModule = (store, rootState, path, module) => {
 function resetStoreVM(store, state) {
   const computed = {};   // 定义计算属性
   store.getters = {};
-  console.log("store._wrappedGetters", store._wrappedGetters)
   forEachValue(store._wrappedGetters, (fn, key) => {
     computed[key] = () => {
-      fn(store.state);
+      return fn(store.state);
     };
     Object.defineProperty(store.getters, key, {
       get: () => store._vm[key]//通过计算属性中取值，从而有缓存

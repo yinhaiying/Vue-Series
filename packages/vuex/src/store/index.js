@@ -36,16 +36,14 @@ const store = new Vuex.Store({
   },
   mutations: {   // method同步地更改
     setAge(state, payload) {
-      console.log("state.age:", state.age, "payload:", payload)
       state.age = state.age + payload;
     }
   },
   actions: {     // 异步修改完成后将信息提交给mutations
-    changeName({ commit }, payload) {
+    changeAge({ commit }, payload) {
       setTimeout(() => {
-        commit("setName", payload)
+        commit("setAge", payload)
       }, 1000)
-      //   console.log(dispatch)
     }
   },
   // modules: {
