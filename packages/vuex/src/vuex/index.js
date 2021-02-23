@@ -1,6 +1,6 @@
-import {Store,install} from "./store.js"
-
-export default{
-    Store,
-    install
+import { Store, install } from "./store.js"
+export * from "./helps.js"
+export default {
+  Store,
+  install
 }

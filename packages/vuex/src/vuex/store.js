@@ -17,12 +17,10 @@ export class Store {
 
 
     this._modules = new ModuleCollection(options);
-    console.log("_modules:", this._modules)
     installModule(this, state, [], this._modules.root);
     resetStoreVM(this, state);
 
     // 处理plugins 插件内部依次执行
-    console.log("plugins:", options)
     options.plugins.forEach((plugin) => plugin(this));
   }
   get state() {
@@ -33,7 +31,6 @@ export class Store {
     this._subscribes.push(fn)
   }
   replaceState(state) {
-    console.log("替换的state:", state)
     // TODO:这里拿到的不是最新的state
     this._vm._data.$$state = state;
   }
@@ -58,7 +55,6 @@ export const install = (_Vue) => {
 // 获取最新的状态
 function getState(store, path) {
   let result = path.reduce((newState, current) => {
-    console.log("newState:", newState, "current:", current)
     return newState[current]
   }, store.state);
   console.log("result:", result)
@@ -96,7 +92,7 @@ const installModule = (store, rootState, path, module) => {
   });
   module.forEachGetter((getter, key) => {
     store._wrappedGetters[namespaced + key] = function () {
-      return getter(module, getState(store, path));
+      return getter(getState(store, path));
     }
   });
 
@@ -108,6 +104,7 @@ const installModule = (store, rootState, path, module) => {
 function resetStoreVM(store, state) {
   const computed = {};   // 定义计算属性
   store.getters = {};
+  console.log("store._wrappedGetters", store._wrappedGetters)
   forEachValue(store._wrappedGetters, (fn, key) => {
     computed[key] = () => {
       fn(store.state);
@@ -115,7 +112,7 @@ function resetStoreVM(store, state) {
     Object.defineProperty(store.getters, key, {
       get: () => store._vm[key]//通过计算属性中取值，从而有缓存
     })
-  })
+  });
   store._vm = new Vue({
     data: {
       $$state: state
